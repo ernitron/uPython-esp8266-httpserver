@@ -1,0 +1,12 @@
+<h1><a href="/">Readme </a></h1>
+</div>
+
+<p>Welcome to the ESP-8266 Temperature Server. <br/>
+
+This device provides also an Access Point<br/>
+SSID is something like YoT-1234567<br/>
+PASS is in the manual.<br/>
+
+You can change Place, SSID and PASS to connect to WiFi.
+Settings must be made on address bar as no forms are provided.<br>
+Enjoy <br></p>
