@@ -12,8 +12,8 @@ def do_connect(config):
         ssid = config['ssid']
         pwd  = config['pwd']
     except:
-        ssid = 'YpkeTron24'
-        pwd  = 'BellaBrutta789'
+        ssid = 'YOURSSID'
+        pwd  = 'YOURPASS'
 
     sta_if = network.WLAN(network.STA_IF)
     if not sta_if.isconnected():
