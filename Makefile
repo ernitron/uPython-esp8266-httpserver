@@ -9,7 +9,9 @@ PORT=/dev/ttyUSB0
 SPEED=115200
 
 ESPDEV=192.168.1.144
+ESPDEV=192.168.1.121
 ESPDEV=192.168.1.128
+
 
 ######################################################################
 # End of user config
@@ -29,6 +31,13 @@ help:
 check:
 	python -m py_compile *.py
 	rm -f *.pyc
+
+# To flash firmware
+flash:
+	export PATH="/opt/ESP8266/esp-open-sdk/xtensa-lx106-elf/bin/:$$PATH" ;\
+	/opt/ESP8266/esp-open-sdk/esptool/esptool.py --port $(PORT) erase_flash ;\
+	cd /opt/ESP8266/micropython/esp8266 ;\
+	make PORT=$(PORT) deploy
 
 # Upload all
 all: $(FILES) 
@@ -53,6 +62,10 @@ c: content.py
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
 	python $(UPLOADER) $^ $(ESPDEV):/$^
+f: config.py
+	@echo 'REMEMBER: import webrepl; webrepl.start()'
+	python espsend.py -c -w
+	python $(UPLOADER) $^ $(ESPDEV):/$^
 d: ds18b20.py
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
@@ -68,20 +81,7 @@ reset:
 
 # Print usage
 usage:
-	@echo "make upload FILE:=<file>  to upload a specific file (i.e make upload FILE:=request.py)"
-	@echo "make upload_server        to upload the server code "
-	@echo "make upload_all           to upload all"
-	@echo $(TEST)
-
-# Upload one files only
-upload:
-	@python $(UPLOADER) -b $(SPEED) -p $(PORT) upload $(FILE)
-
-# Upload HTTP files only
-upload_http: $(HTTP_FILES)
-	@python $(UPLOADER) -b $(SPEED) -p $(PORT) upload $(foreach f, $^, $(f))
-
-# Upload httpserver files (init and server module)
-upload_server: $(LUA_FILES)
-	@python $(UPLOADER) -b $(SPEED) -p $(PORT) upload $(foreach f, $^, $(f))
+	@echo "make upload FILE=<file>  to upload a specific file (i.e make upload FILE:=request.py)"
+	@echo "make all           		to upload all"
+	@echo "make <x>                 where <x> is the initial of source file "
 

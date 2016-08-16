@@ -1,6 +1,6 @@
 import ujson
 
-def get_config():
+def read_config():
     # Get Configuration
     config = {}
     try:
@@ -11,9 +11,8 @@ def get_config():
         pass
     return config
 
-def set_config(config):
+def save_config(config):
     # Write Configuration
     c = ujson.dumps(config)
-    print('Configuration: ', c)
     with open('config.txt', 'w') as f:
         f.write(c)

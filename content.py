@@ -5,11 +5,11 @@
 import ujson
 import gc
 import time
-from main import get_config, set_config
+from config import *
 
 def cb_status():
     try:
-        config = get_config()
+        config = read_config()
     except:
         return '<h2>No Status</h2>'
 
@@ -21,45 +21,51 @@ def cb_status():
 
 def cb_setplace(place):
     try:
-        config = get_config()
+        config = read_config()
     except:
         config = {}
 
     config['place'] = place
-    set_config(config)
+    save_config(config)
+    return 'Place set to ' + place
 
 def cb_setwifi(ssid, pwd):
     if len(ssid) < 3 or len(pwd) < 8:
-        return '<h2>WiFi too short: not set</h2>'
+        return '<h2>WiFi too short, try again</h2>'
     try:
-        config = get_config()
+        config = read_config()
     except:
         config = {}
 
     config['ssid'] = ssid
     config['pwd'] = pwd
-    set_config(config)
+    save_config(config)
+    return '<h2>WiFi set to %s %s</h2>' % (ssid, pwd)
 
-def cb_temperature(pin):
-    #from ds18b20 import readtemp
-    #temp, count, sensor = readtemp()
-    temp, count, sensor = ['','','']
-    content  = '<h1><a href="/">' + title + ': ' +temp+ 'C</a></h1>'
-    content += '<p>Reading #' + count + ' @ ' + sensor
+def cb_temperature():
+    gc.collect()
+    import ds18b20
+    s = ds18b20.TempSensor()
+    s.scan()
+    temp, count, sensor = s.readtemp()
+    place = 'Set Place'
+    content  = '<h1><a href="/">%s: %f C</a></h1>' % (place, temp)
+    content += '<p>Reading # %d @ %s' % ( count, sensor )
     content += '</p></div>'
     return content
 
 def cb_temperature_json(pin):
-    #from ds18b20 import readtemp
-    #temp, count, sensor = readtemp()
+    gc.collect()
+    import ds18b20
+    s = ds18b20.TempSensor()
+    s.scan()
+    temp, count, sensor = s.readtemp()
     try:
-        config = get_config()
+        config = read_config()
     except:
         config['address'] = ''
         config['macaddr'] = ''
-    print('CONFIG ', config)
 
-    temp, count, sensor = ['','','']
     temptable = {}
     temptable["temp"] = temp
     temptable["mac"] = config['macaddr']
@@ -101,9 +107,10 @@ def httpfooter():
     footer  = '</div>'
     footer += '<footer class="footer"><div class="container">'
     footer += '<a href="/">[ index</a> | '
+    footer += '<a href="/temperature">temperature </a> | '
     footer += '<a href="/j">json </a> | '
-    footer += '<a href="/setname/?name=myplace">set place</a> | '
-    footer += '<a href="/setwifi/?ssid=myssid&pwd=mypass">set wifi</a> | '
+    footer += '<a href="/setname">place</a> | '
+    footer += '<a href="/setwifi">wifi</a> | '
     footer += '<a href="/status">status</a> | '
     footer += '<a href="/reinit">reinit</a> | '
     footer += '<a href="/help">help</a>]'

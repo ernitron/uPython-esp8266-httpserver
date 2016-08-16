@@ -1,19 +1,16 @@
 #!/usr/bin/python
 
-import socket  # Networking support
 import time    # Current time
 import network
 import machine
 import gc
-import ujson
+from config import *
 
-def do_connect(config):
-    try:
-        ssid = config['ssid']
-        pwd  = config['pwd']
-    except:
-        ssid = 'YpkeTron24'
-        pwd  = 'BellaBrutta789'
+development = True
+
+def do_connect(ssid, pwd):
+    if ssid == None or pwd == None:
+        return None
 
     sta_if = network.WLAN(network.STA_IF)
     if not sta_if.isconnected():
@@ -23,6 +20,9 @@ def do_connect(config):
         while not sta_if.isconnected():
             count += 1
             time.sleep_ms(200)
+    return sta_if
+
+def update_config(config, sta_if, ssid, pwd):
 
     # Get Network Parameters
     sta_if = network.WLAN(network.STA_IF)
@@ -41,24 +41,6 @@ def do_connect(config):
 
     return config
 
-def get_config():
-    # Get Configuration
-    config = {}
-    try:
-        with open('config.txt', 'r') as f:
-            c = f.read()
-        config = ujson.loads(c)
-    except:
-        pass
-    return config
-
-def set_config(config):
-    # Write Configuration
-    c = ujson.dumps(config)
-    print('Configuration: ', c)
-    with open('config.txt', 'w') as f:
-        f.write(c)
-
 #----------------------------------------------------------------
 # MAIN PROGRAM STARTS HERE
 
@@ -67,21 +49,41 @@ if __name__ == '__main__':
     gc.enable()
 
     # Load configuration from file if exists
-    config = get_config()
+    config = read_config()
 
-    # Connect to Network
-    config = do_connect(config)
+    try:
+        ssid = config['ssid']
+        pwd = config['pwd']
+    except:
+        ssid = 'DefaultSSID'
+        pwd = 'DefaultPWD'
+
+    # Connect to Network and save if
+    sta_if = do_connect(ssid, pwd)
+
+    # Update config with new values
+    update_config(config, sta_if, ssid, pwd)
 
     # Save configuration to file
-    set_config(config)
+    save_config(config)
+    print ('Configuration ', config)
 
     # Do we have mem?
-    print ('Memory Free: ', gc.mem_free())
-
-    from ds18b20 import *
-    init_temp_sensor(12)
+    mfree = gc.mem_free()
+    if mfree < 10000:
+        print('Memory Free : ', mfree)
+        gc.collect()
 
     from httpserver import Server
     s = Server(8805)    # construct server object
     s.activate_server() # activate and run
+    #try:
+    #    s.activate_server() # activate and run
+    #except KeyboardInterrupt:
+    #    raise
+    #except Exception:
+#
+#        if development != True:
+#            machine.reset()
+
 
