@@ -5,6 +5,7 @@ import network
 import machine
 import gc
 from config import *
+import ds18b20
 
 development = True
 

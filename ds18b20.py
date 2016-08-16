@@ -2,9 +2,9 @@
 # Erni Tron ernitron@gmail.com
 # Copyright (c) 2016
 
-import onewire
 import time
 import machine
+import onewire
 
 # The temp sensor DS18b20 with 4.7k Ohm resistor pull-up
 # is on GPIO12 on Lolin V3 and WebMos D1-Mini
