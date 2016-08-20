@@ -10,28 +10,28 @@ It is mainly a temperature web server. For devices like ESP8266 and with tempera
 
 - It uses other tools such as webrepl 
 
-Server can be called with
-
-    http://192.168.1.123:8805/help
-
-Or upload your example.html file and request:
-    http://192.168.1.123:8805/example.html
+# USAGE
+Server can be called with: http://192.168.1.123:8805/help 
 
 
-=USAGE
-
-==STATIC FILES
+## STATIC FILES
 HTML files can be added/uploaded into FLASH memory of device and will be served
+Upload your example.html file and request: http://192.168.1.123:8805/example.html
 
-==DYNAMIC BEHAVIOURS
+## DYNAMIC BEHAVIOURS
 Can be configured in the main loop to serve dynamically generated contents
 Conventionally contents are kept in cb_xyz() in content.py
 
-==Implementation
+## TEMPERATURE SERVER WITH DS18b20
+A Dallas DS18b20 temperature sensor must be installed on device. On WeMos default GPIO for reading is = 12 
+
+    D6	GPIO12	machine.Pin(12)
+
+## Implementation
 
 It uses BOOTSTRAP for css/js. 
 
-==Installation
+## Installation
 
 This is a little tricky and I developed the espsend.py to automatize the uploading and to have a very fast cycle of edit-deploy-run-test
 
@@ -56,7 +56,7 @@ Let's start with a bare ESP8266 device like WeMos.
 - Fast Alternative use Makefile to upload
     make all
 
-==Discussion
+## Discussion
 A number of tricks are used to keep memory allocation low. 
 
 See thread http://forum.micropython.org/viewtopic.php?f=16&t=2266
