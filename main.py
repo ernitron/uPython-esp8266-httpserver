@@ -4,7 +4,7 @@ import time    # Current time
 import network
 import machine
 import gc
-from config import save_config, read_config
+import config
 import ds18b20
 
 development = True
@@ -23,63 +23,59 @@ def do_connect(ssid, pwd):
             time.sleep_ms(200)
     return sta_if
 
-def update_config(config, sta_if, ssid, pwd):
-
+def update_config(sta_if):
     # Get Network Parameters
     sta_if = network.WLAN(network.STA_IF)
     (address, mask, gateway, dns) = sta_if.ifconfig()
 
     import ubinascii
-    config['address'] = address
-    config['mask'] = mask
-    config['gateway'] = gateway
-    config['dns'] = dns
-    config['macaddr'] = ubinascii.hexlify(sta_if.config('mac'), ':')
-    config['chipid'] = ubinascii.hexlify(machine.unique_id())
-
-    config['ssid'] = ssid
-    config['pwd'] = pwd
-
-    return config
+    config.config['address'] = address
+    config.config['mask'] = mask
+    config.config['gateway'] = gateway
+    config.config['dns'] = dns
+    config.config['macaddr'] = ubinascii.hexlify(sta_if.config('mac'), ':')
+    config.config['chipid'] = ubinascii.hexlify(machine.unique_id())
 
 #----------------------------------------------------------------
 # MAIN PROGRAM STARTS HERE
 
 if __name__ == '__main__':
+
     # Enable automatic garbage collector
     gc.enable()
 
     # Load configuration from file if exists
-    config = read_config()
+    config.read_config()
+    print (config.config)
 
-    try:
-        ssid = config['ssid']
-        pwd = config['pwd']
-        place = config['place']
-    except:
-        ssid = 'DefaultSSID'
-        pwd = 'DefaultPWD'
+    if 'ssid' not in config.config:
+        config.config['ssid'] = 'DefaultSSID'
+
+    if 'pwd' not in config.config:
+        config.config['pwd'] = 'DefaultPWD'
+
+    if 'place' not in config.config:
+        config.config['place'] = 'Set Place'
 
     # Connect to Network and save if
-    sta_if = do_connect(ssid, pwd)
+    sta_if = do_connect(config.config['ssid'], config.config['pwd'])
 
     # Update config with new values
-    config = update_config(config, sta_if, ssid, pwd)
+    update_config(sta_if)
 
     # Save configuration to file
-    save_config(config)
-    print ('Configuration ', config)
+    config.save_config()
 
     from httpserver import Server
-    s = Server(8805, config['place'])    # construct server object
+    s = Server(8805, config.config['place'])    # construct server object
     s.activate_server() # activate and run
     #try:
     #    s.activate_server() # activate and run
     #except KeyboardInterrupt:
     #    raise
     #except Exception:
-#
-#        if development != True:
-#            machine.reset()
+    #
+    #    if development != True:
+    #       machine.reset()
 
 

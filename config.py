@@ -19,11 +19,12 @@ def read_config():
         pass
     return config
 
-def save_config(conf):
+def save_config():
     global config_updated
+    global config
     # Write Configuration
     with open('config.txt', 'w') as f:
-        f.write(ujson.dumps(conf))
+        f.write(ujson.dumps(config))
 
     config_updated = False
 

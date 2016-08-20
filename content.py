@@ -6,7 +6,6 @@ import ujson
 import gc
 import time
 from config import config, read_config, save_config
-
 import ds18b20
 
 # Global sensor
@@ -31,20 +30,17 @@ def cb_status():
     global config
 
     uptime = time.time()
-
-    content  = '<h2>Status %s</h2>' \
-               '<p>MacAddress %s' \
-               '<p>Address %s' \
-               '<p>Free Memory %d (alloc %d)' \
-               '<p>Uptime %d</div>' % (config['chipid'], config['macaddr'], config['address'], gc.mem_free(), gc.mem_alloc(), uptime)
-
-    return content
+    return '<h2>Status %s</h2>' \
+           '<p>MacAddress %s' \
+           '<p>Address %s' \
+           '<p>Free Memory %d (alloc %d)' \
+           '<p>Uptime %d</div>' % (config['chipid'], config['macaddr'], config['address'], gc.mem_free(), gc.mem_alloc(), uptime)
 
 def cb_setplace(place):
     global config
 
     config['place'] = place
-    save_config(config)
+    save_config()
     return 'Place set to %s' % place
 
 def cb_setwifi(ssid, pwd):
@@ -54,7 +50,7 @@ def cb_setwifi(ssid, pwd):
     global config
     config['ssid'] = ssid
     config['pwd'] = pwd
-    save_config(config)
+    save_config()
     return '<h2>WiFi set to %s %s</h2>' % (ssid, pwd)
 
 def cb_temperature_init():
@@ -125,6 +121,7 @@ def cb_temperature_json(pin):
     temptable["sensor"] = s
     return ujson.dumps(temptable)
 
+
 def httpheader(code, title, extension='h', refresh=''):
    codes = {'200':" OK", '400':" Bad Request", '404':" Not Found", '302':" Redirect"}
    try:
@@ -146,7 +143,7 @@ def httpheader(code, title, extension='h', refresh=''):
 
 footer_tail = '</div>' \
           '<footer class="footer"><div class="container">' \
-          'Vers. 1.1.9<a href="/">[ index</a> | ' \
+          'Vers. 1.2.1 <a href="/">[ index</a> | ' \
           '<a href="/temperature">temperature </a> | ' \
           '<a href="/j">json </a> | ' \
           '<a href="/setname">place</a> | ' \

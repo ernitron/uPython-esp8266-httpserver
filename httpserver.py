@@ -50,7 +50,7 @@ class Server:
      refresh30 = '<meta http-equiv="refresh" content="300">\n'
 
      while True:
-         print ("Awaiting...")
+         print ("Waiting...")
          self.conn, self.addr = self.socket.accept()
          # conn - socket to client // addr - clients address
          req = self.conn.readline()

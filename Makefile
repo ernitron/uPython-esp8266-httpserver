@@ -22,6 +22,7 @@ FILES := \
 	ds18b20.py \
 	request.py \
 	content.py \
+	config.py \
 	help.txt \
 	httpserver.py \
 
@@ -41,7 +42,7 @@ flash:
 	make PORT=$(PORT) deploy
 
 # Upload all
-all: $(FILES)  check
+all: $(FILES) check
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	@python espsend.py -c -w
 	for f in $(FILES); \
