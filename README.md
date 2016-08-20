@@ -14,20 +14,25 @@ Server can be called with
 
     http://192.168.1.123:8805/help
 
-help.txt must be present
+Or upload your example.html file and request:
+    http://192.168.1.123:8805/example.html
 
-= USAGE
-STATIC FILES:
+
+=USAGE
+
+==STATIC FILES
 HTML files can be added/uploaded into FLASH memory of device and will be served
 
-DYNAMIC BEHAVIOURS:
+==DYNAMIC BEHAVIOURS
 Can be configured in the main loop to serve dynamically generated contents
 Conventionally contents are kept in cb_xyz() in content.py
 
-== Implementation
+==Implementation
+
 It uses BOOTSTRAP for css/js. 
 
-== Installation
+==Installation
+
 This is a little tricky and I developed the espsend.py to automatize the uploading and to have a very fast cycle of edit-deploy-run-test
 
 I use the following tools to develop:
@@ -51,7 +56,7 @@ Let's start with a bare ESP8266 device like WeMos.
 - Fast Alternative use Makefile to upload
     make all
 
-== Discussion
+==Discussion
 A number of tricks are used to keep memory allocation low. 
 
 See thread http://forum.micropython.org/viewtopic.php?f=16&t=2266
