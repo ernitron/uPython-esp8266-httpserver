@@ -11,8 +11,8 @@ import ds18b20
 # Global sensor
 sensor = None
 
-preamble = 'HTTP/1.1 %s\r\nServer: tempserver\r\nContent-Type: %s\r\n' \
-           'Cache-Control: private, no-store\r\nConnection: close\r\n\r\n'
+preamble1 = 'HTTP/1.1 %s\r\nServer: tempserver\r\nContent-Type: %s\r\n'
+preamble2 = 'Cache-Control: private, no-store\r\nConnection: close\r\n\r\n'
 
 #head = '<!DOCTYPE html>\n'\
 #           '<html lang="en">\n<head>\n<title>Temp %s</title>\n%s' \
@@ -26,23 +26,21 @@ preamble = 'HTTP/1.1 %s\r\nServer: tempserver\r\nContent-Type: %s\r\n' \
 #           '</head><body>\n'\
 #           '<div class="container-fluid"><div class="jumbotron">\n'
 
-head = '<!DOCTYPE html>\n'\
-           '<html lang="en">\n<head>\n<title>Temp %s</title>\n%s' \
-           '<meta charset="UTF-8">\n' \
-           '<meta name="viewport" content="width=device-width, initial-scale=1">\n' \
-           '<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>\n' \
-           '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n' \
-           '<style media="screen" type="text/css">\n'\
-           'body {font-family: Georgia,serif;}\n</style>\n'\
-           '</head><body>\n'\
-           '<div class="container-fluid"><div class="jumbotron">\n'
+# Must be called with parameters as in a = head % (title, refresh)
+head1 = '<!DOCTYPE html>\n'\
+        '<html lang="en">\n<head>\n<title>Temp %s</title>\n%s' \
+
+head2 = '<meta charset="UTF-8">\n' \
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n' \
+        '<script src="https://goo.gl/EWKTqQ"></script>\n' \
+        '<link rel="stylesheet" href="http://goo.gl/E7UCvM">\n' \
+        '<style media="screen" type="text/css">\n'\
+        'body {font-family: Georgia,serif;}\n</style>\n'\
+        '</head><body>\n'\
+        '<div class="container-fluid"><div class="jumbotron">\n'
 
 def cb_status():
-    config = {}
-    try:
-        config = read_config()
-    except:
-        return '<h2>No Status</h2>'
+    config = read_config()
 
     content  = '<h2>Status %s</h2>' \
                '<p>MacAddress %s' \
@@ -51,24 +49,17 @@ def cb_status():
     return content
 
 def cb_setplace(place):
-    config = {}
-    try:
-        config = read_config()
-    except:
-        config = {}
+    config = read_config()
 
     config['place'] = place
     save_config(config)
-    return 'Place set to ' + place
+    return 'Place set to %s' % place
 
 def cb_setwifi(ssid, pwd):
     if len(ssid) < 3 or len(pwd) < 8:
         return '<h2>WiFi too short, try again</h2>'
-    try:
-        config = read_config()
-    except:
-        config = {}
 
+    config = read_config()
     config['ssid'] = ssid
     config['pwd'] = pwd
     save_config(config)
@@ -79,16 +70,6 @@ def cb_temperature_init():
     if sensor != None:
         # already initialized
         return sensor
-
-    count = 10
-    while count > 0:
-        gc.collect()
-        mfree = gc.mem_free()
-        print(mfree)
-        if mfree > 4800 :
-            break
-        else:
-            count -= 1
 
     # finally import the sensor class
     try:
@@ -111,7 +92,7 @@ def cb_temperature():
         return '<h1><a href="/">No sensor</a></h1>' \
 
     place = 'Set Place'
-    content = '<h1><a href="/">%s: %f C</a></h1>' \
+    content = '<h1><a href="/">%s: %f °C</a></h1>' \
               '<p>Reading # %d @ %s' \
               '</p></div>' % (place, temp, count, s)
     return content
@@ -131,37 +112,35 @@ def cb_temperature_json(pin):
     except:
         config['address'] = ''
         config['macaddr'] = ''
+        config['place'] = 'Set place'
 
     temptable["temp"] = str(temp)
     temptable["count"] = str(count)
     temptable["mac"] = config['macaddr']
     temptable["server"] = config['address']
     temptable["date"] = time.time()
+    temptable["place"] = config['place']
     temptable["sensor"] = s
     return ujson.dumps(temptable)
 
-def httpheader(code, extension, title, refresh=''):
+def httpheader(code, title, extension='h', refresh=''):
    codes = {'200':" OK", '400':" Bad Request", '404':" Not Found", '302':" Redirect"}
    try:
-       HTTPStatusString = code + codes[code]
+       httpstatus = str(code) + codes[str(code)]
    except:
-       HTTPStatusString = "501 Internal Server Error"
+       httpstatus = "501 Internal Server Error"
 
-   # A few MIME types. Keep list short. If you need something that is missing, let's add it.
-   mt = {'html': "text/html", 'json': "application/json" }
+   # MIME types
+   mt = {'h': "text/html", 'j': "application/json" }
    try:
-       MimeType = mt[extension]
+       mimetype = mt[extension]
    except:
-       MimeType = "text/plain"
+       mimetype = "text/plain"
 
-   #gc.collect()
-
-   if extension == 'html' :
-       header = preamble + head % (title, refresh)
+   if extension == 'j':
+       return [preamble1 % (httpstatus, mimetype), preamble2]
    else:
-       header = preamble % (HTTPStatusString, MimeType)
-
-   return header
+       return [preamble1 % (httpstatus, mimetype), preamble2, head1 % (title, refresh), head2]
 
 footer_tail = '</div>' \
           '<footer class="footer"><div class="container">' \

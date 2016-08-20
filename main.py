@@ -55,6 +55,7 @@ if __name__ == '__main__':
     try:
         ssid = config['ssid']
         pwd = config['pwd']
+        place = config['place']
     except:
         ssid = 'DefaultSSID'
         pwd = 'DefaultPWD'
@@ -70,7 +71,7 @@ if __name__ == '__main__':
     print ('Configuration ', config)
 
     from httpserver import Server
-    s = Server(8805)    # construct server object
+    s = Server(8805, config['place'])    # construct server object
     s.activate_server() # activate and run
     #try:
     #    s.activate_server() # activate and run
