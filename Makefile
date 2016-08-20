@@ -79,6 +79,10 @@ r:  check
 reset:  check
 	python espsend.py -c -r
 
+git:
+	git commit -m 'update' -a
+	git push
+
 # Print usage
 usage:
 	@echo "make upload FILE=<file>  to upload a specific file (i.e make upload FILE:=request.py)"

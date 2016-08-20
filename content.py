@@ -5,7 +5,8 @@
 import ujson
 import gc
 import time
-from config import *
+from config import config, read_config, save_config
+
 import ds18b20
 
 # Global sensor
@@ -14,19 +15,6 @@ sensor = None
 preamble1 = 'HTTP/1.1 %s\r\nServer: tempserver\r\nContent-Type: %s\r\n'
 preamble2 = 'Cache-Control: private, no-store\r\nConnection: close\r\n\r\n'
 
-#head = '<!DOCTYPE html>\n'\
-#           '<html lang="en">\n<head>\n<title>Temp %s</title>\n%s' \
-#           '<meta name="generator" content="esp8266-server">\n' \
-#           '<meta charset="UTF-8">\n' \
-#           '<meta name="viewport" content="width=device-width, initial-scale=1">\n' \
-#           '<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>\n' \
-#           '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n' \
-#           '<style media="screen" type="text/css">\n'\
-#           'body {font-family: Georgia,serif;}\n</style>\n'\
-#           '</head><body>\n'\
-#           '<div class="container-fluid"><div class="jumbotron">\n'
-
-# Must be called with parameters as in a = head % (title, refresh)
 head1 = '<!DOCTYPE html>\n'\
         '<html lang="en">\n<head>\n<title>Temp %s</title>\n%s' \
 
@@ -40,16 +28,20 @@ head2 = '<meta charset="UTF-8">\n' \
         '<div class="container-fluid"><div class="jumbotron">\n'
 
 def cb_status():
-    config = read_config()
+    global config
+
+    uptime = time.time()
 
     content  = '<h2>Status %s</h2>' \
                '<p>MacAddress %s' \
                '<p>Address %s' \
-               '<p>Free Memory %d (alloc %d)</div>' % (config['chipid'], config['macaddr'], config['address'], gc.mem_free(), gc.mem_alloc())
+               '<p>Free Memory %d (alloc %d)' \
+               '<p>Uptime %d</div>' % (config['chipid'], config['macaddr'], config['address'], gc.mem_free(), gc.mem_alloc(), uptime)
+
     return content
 
 def cb_setplace(place):
-    config = read_config()
+    global config
 
     config['place'] = place
     save_config(config)
@@ -59,7 +51,7 @@ def cb_setwifi(ssid, pwd):
     if len(ssid) < 3 or len(pwd) < 8:
         return '<h2>WiFi too short, try again</h2>'
 
-    config = read_config()
+    global config
     config['ssid'] = ssid
     config['pwd'] = pwd
     save_config(config)
@@ -82,8 +74,14 @@ def cb_temperature_init():
 
 def cb_temperature():
     global sensor
+    global config
     if sensor == None:
         cb_temperature_init()
+
+    if 'place' in config:
+        place = config['place']
+    else:
+        place = 'Set place'
 
     try:
         temp, count, s = sensor.readtemp()
@@ -91,14 +89,17 @@ def cb_temperature():
         sensor = None
         return '<h1><a href="/">No sensor</a></h1>' \
 
-    place = 'Set Place'
+    uptime = time.time()
+
     content = '<h1><a href="/">%s: %f °C</a></h1>' \
-              '<p>Reading # %d @ %s' \
-              '</p></div>' % (place, temp, count, s)
+              '<p>Reading # %d @ %d' \
+              '</p></div>' % (place, temp, count, uptime)
     return content
 
 def cb_temperature_json(pin):
     global sensor
+    global config
+
     temptable = {}
     if sensor == None:
         cb_temperature_init()
@@ -107,11 +108,12 @@ def cb_temperature_json(pin):
         temp, count, s = sensor.readtemp()
     except:
         sensor = None
-    try:
-        config = read_config()
-    except:
+
+    if 'address' not in config:
         config['address'] = ''
+    if 'macaddr' not in config:
         config['macaddr'] = ''
+    if 'place' not in config:
         config['place'] = 'Set place'
 
     temptable["temp"] = str(temp)
@@ -144,7 +146,7 @@ def httpheader(code, title, extension='h', refresh=''):
 
 footer_tail = '</div>' \
           '<footer class="footer"><div class="container">' \
-          '<a href="/">[ index</a> | ' \
+          'Vers. 1.1.9<a href="/">[ index</a> | ' \
           '<a href="/temperature">temperature </a> | ' \
           '<a href="/j">json </a> | ' \
           '<a href="/setname">place</a> | ' \

@@ -62,77 +62,77 @@ class Server:
          # determine request method (GET / POST are supported)
          r = parse_request(req)
          if r == None:
-            header = httpheader(404, self.title)
-            content = '404 - Error'
-            self.http_send(header, content, self.footer)
+             header = httpheader(404, self.title)
+             content = '404 - Error'
+             self.http_send(header, content, self.footer)
          elif r['uri'] == b'/' or r['uri'] == b'/index' :
-            header = httpheader(200, self.title, refresh=refresh30)
-            content = '<h2>Server Ready %s</h2>' % self.title + cb_status()
-            self.http_send(header, content, self.footer)
+             header = httpheader(200, self.title, refresh=refresh30)
+             content = '<h2>Server Ready %s</h2>' % self.title + cb_status()
+             self.http_send(header, content, self.footer)
          elif r['uri'] == b'/temperature' :
-            content = cb_temperature()
-            header = httpheader(200, self.title, refresh=refresh30)
-            self.http_send(header, content, self.footer)
+             content = cb_temperature()
+             header = httpheader(200, self.title, refresh=refresh30)
+             self.http_send(header, content, self.footer)
          elif r['uri'] == b'/j' :
-            content = cb_temperature_json(12)
-            header = httpheader(200, self.title, extension='j')
-            self.http_send(header, content, '')
+             content = cb_temperature_json(12)
+             header = httpheader(200, self.title, extension='j')
+             self.http_send(header, content, '')
          elif r['uri'] == b"/help":
-            try:
+             try:
                 with open('help.txt', 'r') as f:
                     content = f.readlines()
-            except:
+             except:
                 content = ''
-            header = httpheader(200, self.title)
-            self.http_send(header, content, self.footer)
+             header = httpheader(200, self.title)
+             self.http_send(header, content, self.footer)
          elif r['uri'] == b'/status':
             header = httpheader(200, self.title)
             self.http_send(header, cb_status(), self.footer)
          elif b'/setname' in r['uri']:
-            try:
+             if 'name' in r['args']:
                self.title = r['args']['name']
                header = httpheader(302, self.title, refresh='<meta http-equiv="refresh" content="2; url=/"/>')
                content = cb_setplace(self.title)
-            except:
+             else:
                header = httpheader(200, self.title)
                content = '<p><form action="/setname">' \
                          'Name <input type="text" name="name"> ' \
                          '<input type="submit" value="Submit">' \
                          '</form></p></div>'
-            self.http_send(header, content, self.footer)
+             self.http_send(header, content, self.footer)
          elif b"/setwifi" in r['uri']:
-            try:
+             if 'ssid' in r['args'] and 'pwd' in r['args']:
                 ssid = r['args']['ssid']
                 pwd = r['args']['pwd']
                 content = cb_setwifi(ssid, pwd)
-            except:
+             else:
                 content = '<p><form action="/setwifi">' \
                           'SSID <input type="text" name="ssid"> ' \
                           'PASS <input type="text" name="pwd"> ' \
                           '<input type="submit" value="Submit">' \
                           '</form></p></div>'
-            header = httpheader(200, self.title)
-            self.http_send(header, content, self.footer)
+             header = httpheader(200, self.title)
+             self.http_send(header, content, self.footer)
          elif r['uri'] == b'/reinit' :
-            header = httpheader(200, self.title)
-            content = '<h2><a href="/">Machine restarts in 2 secs...</a></h2></div>'
-            self.http_send(header, content, self.footer)
-            time.sleep(2)
-            import machine
-            machine.reset()
+             header = httpheader(200, self.title)
+             content = '<h2><a href="/">Machine restarts in 2 secs...</a></h2></div>'
+             self.http_send(header, content, self.footer)
+             time.sleep(2)
+             import machine
+             machine.reset()
          elif r['file'] != b'':
-            myfile = r['file']
-            try:
+             myfile = r['file']
+             try:
                 with open(myfile, 'r') as f:
                     content = f.readlines()
-            except:
+             except:
                 content = 'No such file %s' % myfile
-            header = httpheader(200, self.title)
-            self.http_send(header, content, self.footer)
+             header = httpheader(200, self.title)
+             self.http_send(header, content, self.footer)
          else:
-            header = httpheader(404, self.title)
-            content = '404 - Error'
-            self.http_send(header, content, self.footer)
+             header = httpheader(404, self.title)
+             content = '404 - Error'
+             self.http_send(header, content, self.footer)
 
          # At end of loop just close socket and collect garbage
          self.conn.close()
