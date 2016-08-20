@@ -3,15 +3,16 @@
 ######################################################################
 # Path to uploader 
 UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
+ESPTOOL=/opt/ESP8266/esp-open-sdk/esptool/esptool.py
 # Serial port
 #PORT=/dev/cu.SLAB_USBtoUART
 PORT=/dev/ttyUSB0
 SPEED=115200
 
-ESPDEV=192.168.1.144
-ESPDEV=192.168.1.121
-ESPDEV=192.168.1.128
-
+DEV=192.168.1.144
+DEV=192.168.1.121
+DEV=192.168.1.51
+DEV=192.168.1.128
 
 ######################################################################
 # End of user config
@@ -35,48 +36,47 @@ check:
 # To flash firmware
 flash:
 	export PATH="/opt/ESP8266/esp-open-sdk/xtensa-lx106-elf/bin/:$$PATH" ;\
-	/opt/ESP8266/esp-open-sdk/esptool/esptool.py --port $(PORT) erase_flash ;\
+	$(ESPTOOL) --port $(PORT) erase_flash ;\
 	cd /opt/ESP8266/micropython/esp8266 ;\
 	make PORT=$(PORT) deploy
 
 # Upload all
-all: $(FILES) 
+all: $(FILES)  check
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	@python espsend.py -c -w
 	for f in $(FILES); \
 	do \
-		python $(UPLOADER) $$f $(ESPDEV):/$$f ;\
+		python $(UPLOADER) $$f $(DEV):/$$f ;\
 	done;
 	@python espsend.py -r
 
-m: main.py
+m: main.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(ESPDEV):/$^
-h: httpserver.py
+	python $(UPLOADER) $^ $(DEV):/$^
+h: httpserver.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(ESPDEV):/$^
+	python $(UPLOADER) $^ $(DEV):/$^
 	python espsend.py -r
-c: content.py
+c: content.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(ESPDEV):/$^
-f: config.py
+	python $(UPLOADER) $^ $(DEV):/$^
+f: config.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(ESPDEV):/$^
-d: ds18b20.py
+	python $(UPLOADER) $^ $(DEV):/$^
+d: ds18b20.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(ESPDEV):/$^
-q: request.py
+	python $(UPLOADER) $^ $(DEV):/$^
+q: request.py 
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(ESPDEV):/$^
-r: 
+	python $(UPLOADER) $^ $(DEV):/$^
+r:  check
 	python espsend.py -c -r
-
-reset: 
+reset:  check
 	python espsend.py -c -r
 
 # Print usage

@@ -4,7 +4,7 @@ import time    # Current time
 import network
 import machine
 import gc
-from config import *
+from config import save_config, read_config
 import ds18b20
 
 development = True
@@ -63,17 +63,11 @@ if __name__ == '__main__':
     sta_if = do_connect(ssid, pwd)
 
     # Update config with new values
-    update_config(config, sta_if, ssid, pwd)
+    config = update_config(config, sta_if, ssid, pwd)
 
     # Save configuration to file
     save_config(config)
     print ('Configuration ', config)
-
-    # Do we have mem?
-    mfree = gc.mem_free()
-    if mfree < 10000:
-        print('Memory Free : ', mfree)
-        gc.collect()
 
     from httpserver import Server
     s = Server(8805)    # construct server object

@@ -3,18 +3,15 @@
 # Global import
 import socket  # Networking support
 import time    # Current time
-import gc      # Garbage collector
 import network # Network IF
-import machine
 
 # Local import
 from request import parse_request
-from content import *
-
+from content import httpheader, httpfooter, cb_status, cb_setplace, cb_setplace, cb_setwifi, cb_temperature_init, cb_temperature, cb_temperature_json
 
 # A simple HTTP server
 class Server:
-  def __init__(self, port=80, title='ESP Server'):
+  def __init__(self, port=80, title='ESPserver'):
      # Constructor
      self.host = '0.0.0.0' # <-- works on all avaivable network interfaces
      self.port = port
@@ -46,58 +43,66 @@ class Server:
   def wait_for_connections(self):
      # Main loop awaiting connections
      self.socket.listen(1) # maximum number of queued connections
+     c200 = '200'
+     c404 = '404'
+     c302 = '302'
+     chtml = 'html'
+     cjson = 'json'
+     refresh30 = '<meta http-equiv="refresh" content="300">\n'
 
      while True:
-         print ("Awaiting... ")
+         print ("Awaiting...")
          conn, addr = self.socket.accept()
          # conn - socket to client // addr - clients address
-         data = conn.recv(512) # it would be better a 1024 buffer
-         string = bytes.decode(data)
+         req = conn.readline()
+         while True:
+             h = conn.readline()
+             if not h or h == b'\r\n':
+                 break
 
          # determine request method (GET / POST are supported)
-         r = parse_request(string)
+         r = parse_request(req)
          if r == None:
-            header = httpheader('404', 'html', self.title, '')
-            content = '404 - Error'
+            header = httpheader(c404, chtml, self.title)
+            content = c404 + ' - Error'
             self.http_send(conn, header, content, self.footer)
-         elif r['uri'] == '/' or r['uri'] == '/index' :
-            header = httpheader('200', 'html', self.title, '<meta http-equiv="refresh" content="300">\n')
+         elif r['uri'] == b'/' or r['uri'] == b'/index' :
+            header = httpheader(c200, chtml, self.title, refresh30)
             content = '<h2>Server Ready</h2>' + cb_status()
             self.http_send(conn, header, content, self.footer)
-         elif r['uri'] == '/temperature' :
+         elif r['uri'] == b'/temperature' :
             content = cb_temperature()
-            header = httpheader('200', 'html', self.title, '<meta http-equiv="refresh" content="300">\n')
+            header = httpheader(c200, chtml, self.title, refresh30)
             self.http_send(conn, header, content, self.footer)
-         elif r['uri'] == '/j' :
+         elif r['uri'] == b'/j' :
             content = cb_temperature_json(12)
-            header = httpheader('200', 'json', self.title, '')
+            header = httpheader(c200, cjson, self.title)
             self.http_send(conn, header, content, '')
-         elif r['uri'] == "/help":
+         elif r['uri'] == b"/help":
             print('Setname')
             try:
                 with open('help.txt', 'r') as f:
                     content = f.readlines()
             except:
                 content = ''
-            header = httpheader('200', 'html', self.title, '')
+            header = httpheader(c200, chtml, self.title)
             self.http_send(conn, header, content, self.footer)
-         elif r['uri'] == "/status":
-            header = httpheader('200', 'html', self.title, '<meta http-equiv="refresh" content="300">\n')
+         elif r['uri'] == b"/status":
+            header = httpheader(c200, chtml, self.title, refresh30)
             self.http_send(conn, header, cb_status(), self.footer)
-         elif "/setname" in r['uri']:
+         elif b"/setname" in r['uri']:
             try:
                self.title = r['args']['name']
-               header = httpheader('302', 'html', self.title, '<meta http-equiv="refresh" content="0; url=/"/>')
+               header = httpheader(c302, chtml, self.title, '<meta http-equiv="refresh" content="0; url=/"/>')
                content = cb_setplace(self.title)
             except:
-               header = httpheader('200', 'html', self.title, '')
+               header = httpheader('200', 'html', self.title)
                content = '<p><form action="/setname">' \
                          'Name <input type="text" name="name"> ' \
                          '<input type="submit" value="Submit">' \
                          '</form></p></div>'
             self.http_send(conn, header, content, self.footer)
-         elif "/setwifi" in r['uri']:
-            print('Setwifi')
+         elif b"/setwifi" in r['uri']:
             try:
                     ssid = r['args']['ssid']
                     pwd = r['args']['pwd']
@@ -108,26 +113,27 @@ class Server:
                               'PASS <input type="text" name="pwd"> ' \
                               '<input type="submit" value="Submit">' \
                               '</form></p></div>'
-            header = httpheader('200', 'html', self.title, '')
+            header = httpheader(c200, chtml, self.title)
             self.http_send(conn, header, content, self.footer)
-         elif r['uri'] == '/reinit' :
-            header = httpheader('200', 'html', self.title, '')
+         elif r['uri'] == b'/reinit' :
+            header = httpheader(c200, chtml, self.title)
             content = '<h2><a href="/">Machine restarts in 2 secs...</a></h2></div>'
             self.http_send(conn, header, content, self.footer)
             time.sleep(2)
+            import machine
             machine.reset()
-         elif r['file'] != '':
+         elif r['file'] != b'':
             myfile = r['file']
             try:
                 with open(myfile, 'r') as f:
                     content = f.readlines()
             except:
-                content = 'No Such file %s' % myfile
-            header = httpheader('200', 'html', self.title, '')
+                content = 'No such file %s' % myfile
+            header = httpheader(c200, chtml, self.title)
             self.http_send(conn, header, content, self.footer)
          else:
-            header = httpheader('404', 'html', self.title, '')
-            content = 'Error 404'
+            header = httpheader(c404, chtml, self.title)
+            content = '404'
             self.http_send(conn, header, content, self.footer)
 
          # At end of loop just close socket and collect garbage

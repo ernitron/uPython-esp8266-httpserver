@@ -15,11 +15,31 @@ class ESPserial:
     def write(self, packet):
         self._port.write(packet)
 
+    def sendfile(self, file):
+        with open(file, 'r') as f:
+            lines = f.readlines()
+        self.write('with open("%s", "w") as f:\r\n' % file)
+        count = 1
+        for l in lines:
+           ll = l.replace("'", "\\'")
+           self.write("f.write('%s # [%d]\n')\r\n" % (ll, count))
+           count += 1
+           time.sleep(0.02)
+        self.write('\x08\r\n')
+        self.write('\r\n')
+        #self.write('import os\r\n')
+        #time.sleep(0.02)
+        #self.write('os.rename("tempfile", "%s")\r\n' % file)
+        #time.sleep(0.02)
+        #self.write('os.listdir()\r\n')
+        #self.write('\x04\r\n')
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', action="store", default='/dev/ttyUSB0')
     parser.add_argument('--baud', action="store", default=115200)
+    parser.add_argument('--file', action="store", default='')
     parser.add_argument('-c', '--controlc', action="store_true", default=False)
     parser.add_argument('-w', '--webrepl', action="store_true", default=False)
     parser.add_argument('-r', '--reset', action="store_true", default=False)
@@ -31,6 +51,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     esp = ESPserial(port=args.port, baud=int(args.baud))
+
+    if args.file != '':
+        print("Sending File %s" % args.file)
+        esp.sendfile(args.file)
 
     if args.controlc == True:
         print("Sending Control-c")

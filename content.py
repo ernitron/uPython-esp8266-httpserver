@@ -11,6 +11,32 @@ import ds18b20
 # Global sensor
 sensor = None
 
+preamble = 'HTTP/1.1 %s\r\nServer: tempserver\r\nContent-Type: %s\r\n' \
+           'Cache-Control: private, no-store\r\nConnection: close\r\n\r\n'
+
+#head = '<!DOCTYPE html>\n'\
+#           '<html lang="en">\n<head>\n<title>Temp %s</title>\n%s' \
+#           '<meta name="generator" content="esp8266-server">\n' \
+#           '<meta charset="UTF-8">\n' \
+#           '<meta name="viewport" content="width=device-width, initial-scale=1">\n' \
+#           '<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>\n' \
+#           '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n' \
+#           '<style media="screen" type="text/css">\n'\
+#           'body {font-family: Georgia,serif;}\n</style>\n'\
+#           '</head><body>\n'\
+#           '<div class="container-fluid"><div class="jumbotron">\n'
+
+head = '<!DOCTYPE html>\n'\
+           '<html lang="en">\n<head>\n<title>Temp %s</title>\n%s' \
+           '<meta charset="UTF-8">\n' \
+           '<meta name="viewport" content="width=device-width, initial-scale=1">\n' \
+           '<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>\n' \
+           '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n' \
+           '<style media="screen" type="text/css">\n'\
+           'body {font-family: Georgia,serif;}\n</style>\n'\
+           '</head><body>\n'\
+           '<div class="container-fluid"><div class="jumbotron">\n'
+
 def cb_status():
     config = {}
     try:
@@ -18,10 +44,10 @@ def cb_status():
     except:
         return '<h2>No Status</h2>'
 
-    content  = '<h2>Status %s</h2>' % config['chipid']
-    content += '<p>MacAddress %s' % config['macaddr']
-    content += '<p>Address %s' % config['address']
-    content += '<p>Free Memory %d (alloc %d)</div>' % (gc.mem_free(), gc.mem_alloc())
+    content  = '<h2>Status %s</h2>' \
+               '<p>MacAddress %s' \
+               '<p>Address %s' \
+               '<p>Free Memory %d (alloc %d)</div>' % (config['chipid'], config['macaddr'], config['address'], gc.mem_free(), gc.mem_alloc())
     return content
 
 def cb_setplace(place):
@@ -56,8 +82,8 @@ def cb_temperature_init():
 
     count = 10
     while count > 0:
-        mfree = gc.mem_free()
         gc.collect()
+        mfree = gc.mem_free()
         print(mfree)
         if mfree > 4800 :
             break
@@ -75,31 +101,31 @@ def cb_temperature_init():
 
 def cb_temperature():
     global sensor
-    cb_temperature_init()
-    content = '<h1><a href="/">No temp sensor available</a></h1>'
     if sensor == None:
-        return content
+        cb_temperature_init()
 
     try:
-        temp, count, sensor = sensor.readtemp()
+        temp, count, s = sensor.readtemp()
     except:
         sensor = None
-        return content
+        return '<h1><a href="/">No sensor</a></h1>' \
 
     place = 'Set Place'
     content = '<h1><a href="/">%s: %f C</a></h1>' \
               '<p>Reading # %d @ %s' \
-              '</p></div>' % ( place, temp, count, sensor )
+              '</p></div>' % (place, temp, count, s)
     return content
 
 def cb_temperature_json(pin):
     global sensor
-    cb_temperature_init()
     temptable = {}
     if sensor == None:
-        return ujson.dumps(temptable)
+        cb_temperature_init()
 
-    temp, count, s = sensor.readtemp()
+    try:
+        temp, count, s = sensor.readtemp()
+    except:
+        sensor = None
     try:
         config = read_config()
     except:
@@ -107,14 +133,14 @@ def cb_temperature_json(pin):
         config['macaddr'] = ''
 
     temptable["temp"] = str(temp)
+    temptable["count"] = str(count)
     temptable["mac"] = config['macaddr']
     temptable["server"] = config['address']
-    temptable["count"] = str(count)
     temptable["date"] = time.time()
     temptable["sensor"] = s
     return ujson.dumps(temptable)
 
-def httpheader(code, extension, title, refresh):
+def httpheader(code, extension, title, refresh=''):
    codes = {'200':" OK", '400':" Bad Request", '404':" Not Found", '302':" Redirect"}
    try:
        HTTPStatusString = code + codes[code]
@@ -128,32 +154,27 @@ def httpheader(code, extension, title, refresh):
    except:
        MimeType = "text/plain"
 
-   if extension == 'json' :
-       header = "HTTP/1.1 " + HTTPStatusString + "\r\nServer: tempserver\r\nContent-Type: " + MimeType + "\r\nCache-Control: private, no-store\r\n" + "Connection: close\r\n\r\n"
+   #gc.collect()
+
+   if extension == 'html' :
+       header = preamble + head % (title, refresh)
    else:
-       header = "HTTP/1.1 " + HTTPStatusString + "\r\nServer: tempserver\r\nContent-Type: " + MimeType + "\r\nCache-Control: private, no-store\r\n" + "Connection: close\r\n\r\n" \
-       '<!DOCTYPE html>\n' \
-                 '<html lang="en">\n<head>\n<title>Temp ' + title + '</title>\n' + refresh + \
-                 '<meta name="generator" content="esp8266-server">\n<meta charset="UTF-8">\n' \
-                 '<meta name="viewport" content="width=device-width, initial-scale=1">\n' \
-                 '<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>\n' \
-                 '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">\n' \
-                 '<style media="screen" type="text/css">\n' \
-                 'body {font-family: Georgia,serif;}\n.jumbotron {padding:10px 10px;}\n</style>\n' \
-                 '</head>\n<body>\n' \
-                 '<div class="container-fluid">\n<div class="jumbotron">\n'
+       header = preamble % (HTTPStatusString, MimeType)
+
    return header
 
+footer_tail = '</div>' \
+          '<footer class="footer"><div class="container">' \
+          '<a href="/">[ index</a> | ' \
+          '<a href="/temperature">temperature </a> | ' \
+          '<a href="/j">json </a> | ' \
+          '<a href="/setname">place</a> | ' \
+          '<a href="/setwifi">wifi</a> | ' \
+          '<a href="/status">status</a> | ' \
+          '<a href="/reinit">reinit</a> | ' \
+          '<a href="/help">help</a>]' \
+          '</div></footer>' \
+          '</body></html>'
+
 def httpfooter():
-   return '</div>' \
-              '<footer class="footer"><div class="container">' \
-              '<a href="/">[ index</a> | ' \
-              '<a href="/temperature">temperature </a> | ' \
-              '<a href="/j">json </a> | ' \
-              '<a href="/setname">place</a> | ' \
-              '<a href="/setwifi">wifi</a> | ' \
-              '<a href="/status">status</a> | ' \
-              '<a href="/reinit">reinit</a> | ' \
-              '<a href="/help">help</a>]' \
-              '</div></footer>' \
-              '</body></html>'
+    return footer_tail
