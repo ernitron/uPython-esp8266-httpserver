@@ -19,7 +19,7 @@ HTML files can be added/uploaded into FLASH memory of device and will be served.
 
 For example if you upload your example.html file and request: http://192.168.1.123:8805/example.html
 
-## DYNAMIC BEHAVIOURS
+## DYNAMIC BEHAVIOR
 Can be configured in the main loop to serve dynamically generated contents
 Conventionally contents are kept in cb_xyz() in content.py
 

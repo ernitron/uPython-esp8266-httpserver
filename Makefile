@@ -54,7 +54,7 @@ all: $(FILES) check
 	@python espsend.py -c -w
 	for f in $(FILES); \
 	do \
-		(UPLOADER) $$f $(DEV):/$$f ;\
+		$(UPLOADER) $$f $(DEV):/$$f ;\
 	done;
 	@python espsend.py -r
 
