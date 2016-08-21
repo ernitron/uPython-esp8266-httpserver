@@ -37,11 +37,9 @@ if __name__ == '__main__':
 
     if 'ssid' not in config.config:
         config.config['ssid'] = 'DefaultSSID'
-        config.config['ssid'] = 'YpkeTron24'
 
     if 'pwd' not in config.config:
         config.config['pwd'] = 'DefaultPWD'
-        config.config['pwd'] = 'BellaBrutta789'
 
     if 'place' not in config.config:
         config.config['place'] = 'Set Place'
