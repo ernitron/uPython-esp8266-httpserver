@@ -6,6 +6,8 @@ UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
 ESPTOOL=/opt/ESP8266/esp-open-sdk/esptool/esptool.py
 ESPSEND=./espsend.py
 
+DATE=$(shell date +"%d %b %Y")
+
 # Serial port
 #PORT=/dev/cu.SLAB_USBtoUART
 PORT=/dev/ttyUSB0
@@ -86,7 +88,7 @@ webrepl:
 	/opt/google/chrome/chrome file:///opt/ESP8266/webrepl/webrepl.html
 
 git:
-	git commit -m 'update' -a
+	git commit -m 'update ${DATE}' -a
 	git push
 
 # Print usage
