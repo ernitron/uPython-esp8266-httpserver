@@ -20,7 +20,7 @@ def do_connect(ssid, pwd):
         sta_if.connect(ssid, pwd)
         while not sta_if.isconnected():
             time.sleep_ms(200)
-        #print('STA config: ', sta_if.ifconfig())
+        print('STA config: ', sta_if.ifconfig())
     return sta_if
 
 #----------------------------------------------------------------
@@ -46,7 +46,6 @@ if __name__ == '__main__':
 
     # Connect to Network and save if
     sta_if = do_connect(config.config['ssid'], config.config['pwd'])
-
     # Update config with new values
     config.update_config(sta_if)
 
