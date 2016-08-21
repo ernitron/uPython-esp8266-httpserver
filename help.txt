@@ -3,9 +3,40 @@
 
 <p>Welcome to the ESP-8266 Temperature Server. <br/>
 
-This device can also provide an Access Point<br/>
+Server can be called with: http://192.168.1.123:8805/help
+<br>
+
+Configuration is kept into configuration.txt with json string with { 'key': value }
+<br>
+You can change PLACE name, SSID and PASS to connect to an external WiFi AP.
+<br>
+
+This device can also provide an Access Point if configured<br/>
 SSID is something like YoT-1234567<br/>
 PASS is in the manual<br/>
 
-You can change PLACE name, SSID and PASS to connect to an external WiFi AP.
+
+<h2>STATIC FILES</h2>
+
+HTML files can be added/uploaded into FLASH memory of device and will be served.
+<br>
+
+For example if you upload your example.html file and request: http://192.168.1.123:8805/example.html
+<br>
+
+<h2>DYNAMIC BEHAVIOURS</h2>
+
+Can be configured in the main loop to serve dynamically generated contents Conventionally contents are kept in cb_xyz() in content.py
+<br>
+
+<h2>TEMPERATURE SERVER WITH DS18b20</h2>
+
+A Dallas DS18b20 temperature sensor must be installed on device. On WeMos default GPIO for reading is = 12
+<br>
+
+D6  GPIO12  machine.Pin(12)
+<br>
+
+
+
 Enjoy <br></p>

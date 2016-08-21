@@ -1,4 +1,6 @@
-#!/usr/bin/python
+# Micropython Http Server
+# Erni Tron ernitron@gmail.com
+# Copyright (c) 2016
 
 import time
 import network

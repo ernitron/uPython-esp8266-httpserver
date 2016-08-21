@@ -1,3 +1,7 @@
+# Micropython Http Server
+# Erni Tron ernitron@gmail.com
+# Copyright (c) 2016
+
 def get_args(uri):
    answer = {}
    if uri == None or uri == b'' :

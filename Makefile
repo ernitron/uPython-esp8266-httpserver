@@ -38,6 +38,9 @@ check:
 	python -m py_compile *.py
 	rm -f *.pyc
 
+vi:
+	gvim $(FILES)
+
 # To flash firmware
 flash:
 	export PATH="/opt/ESP8266/esp-open-sdk/xtensa-lx106-elf/bin/:$$PATH" ;\

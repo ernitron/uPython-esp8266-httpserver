@@ -1,3 +1,7 @@
+# Micropython Http Server
+# Erni Tron ernitron@gmail.com
+# Copyright (c) 2016
+
 # Content Callback functions.
 # They should receive parameters and return a HTML formatted string
 # By convention they start with cb_

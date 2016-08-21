@@ -1,4 +1,4 @@
-# Micropython
+# Micropython Http Server
 # Erni Tron ernitron@gmail.com
 # Copyright (c) 2016
 

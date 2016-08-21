@@ -1,3 +1,7 @@
+# Micropython Http Server
+# Erni Tron ernitron@gmail.com
+# Copyright (c) 2016
+
 import network
 import ujson
 import machine
