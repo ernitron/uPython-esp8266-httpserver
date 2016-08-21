@@ -19,21 +19,22 @@ class ESPserial:
         with open(file, 'r') as f:
             lines = f.readlines()
 
-        self.write('\x03')
+        self.write('\x03') # Send ^C
         esp.write('import webrepl; webrepl.start()\r\n')
-        self.write('\x05')
+        self.write('\x05') # Send ^E
         time.sleep(0.02)
-        self.write("a='''")
-        time.sleep(0.02)
+        self.write('with open("%s", "w") as f:\r' % file)
         for l in lines:
-           self.write(l+'\r')
+           if l[0] == '#':
+               print ('Skip comment')
+               continue
+           l1 = l.strip()
+           l2 = l1.split('#', 1)[0]
+           self.write(" a='''%s'''\r" % l2)
+           self.write(" f.write(a)\r")
            time.sleep(0.02)
-        self.write("'''\r\n")
 
-        self.write('with open("%s", "w") as f:\r\n' % file)
-        self.write(" f.write(a)\r\n")
-        self.write('\x08')
-        self.write('\x04')
+        self.write('\x04') # Send ^D
 
 if __name__ == '__main__':
     import argparse

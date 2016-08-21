@@ -9,6 +9,7 @@ import time    # Current time
 # Local import
 from request import parse_request
 from content import httpheader, httpfooter, cb_status, cb_setplace, cb_setplace, cb_setwifi, cb_temperature_init, cb_temperature, cb_temperature_json
+from config import save_config, read_config
 
 # A simple HTTP server
 class Server:
