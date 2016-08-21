@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # Enable automatic garbage collector
     gc.enable()
 
-    # Load configuration from file if exists
+    # Read configuration from file if exists
     config.read_config()
     print (config.config)
 

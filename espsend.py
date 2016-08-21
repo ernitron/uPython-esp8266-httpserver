@@ -18,21 +18,22 @@ class ESPserial:
     def sendfile(self, file):
         with open(file, 'r') as f:
             lines = f.readlines()
-        self.write('with open("%s", "w") as f:\r\n' % file)
-        count = 1
+
+        self.write('\x03')
+        esp.write('import webrepl; webrepl.start()\r\n')
+        self.write('\x05')
+        time.sleep(0.02)
+        self.write("a='''")
+        time.sleep(0.02)
         for l in lines:
-           ll = l.replace("'", "\\'")
-           self.write("f.write('%s # [%d]\n')\r\n" % (ll, count))
-           count += 1
+           self.write(l+'\r')
            time.sleep(0.02)
-        self.write('\x08\r\n')
-        self.write('\r\n')
-        #self.write('import os\r\n')
-        #time.sleep(0.02)
-        #self.write('os.rename("tempfile", "%s")\r\n' % file)
-        #time.sleep(0.02)
-        #self.write('os.listdir()\r\n')
-        #self.write('\x04\r\n')
+        self.write("'''\r\n")
+
+        self.write('with open("%s", "w") as f:\r\n' % file)
+        self.write(" f.write(a)\r\n")
+        self.write('\x08')
+        self.write('\x04')
 
 if __name__ == '__main__':
     import argparse

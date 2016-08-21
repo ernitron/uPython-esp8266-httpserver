@@ -15,8 +15,9 @@ Server can be called with: http://192.168.1.123:8805/help
 
 
 ## STATIC FILES
-HTML files can be added/uploaded into FLASH memory of device and will be served
-Upload your example.html file and request: http://192.168.1.123:8805/example.html
+HTML files can be added/uploaded into FLASH memory of device and will be served.
+
+For example if you upload your example.html file and request: http://192.168.1.123:8805/example.html
 
 ## DYNAMIC BEHAVIOURS
 Can be configured in the main loop to serve dynamically generated contents
@@ -29,7 +30,19 @@ A Dallas DS18b20 temperature sensor must be installed on device. On WeMos defaul
 
 ## Implementation
 
-It uses BOOTSTRAP for css/js. 
+I use a configurator that reads and saves variables into json files
+
+Server http is a class object with a main loop to serve requests.
+
+The parser of requests works only on first line that has the request from browser:
+    GET /example/?var1=value1&var2=value2 HTTP/1.1
+
+Contents are produced with embedded html commands
+
+It uses BOOTSTRAP for css/js. I have made shortcuts url for the cdn repository:
+        https://goo.gl/EWKTqQ = https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js        
+        http://goo.gl/E7UCvM =  http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css
+
 
 ## Installation
 
@@ -37,22 +50,22 @@ This is a little tricky and I developed the espsend.py to automatize the uploadi
 
 I use the following tools to develop:
 
-    ESPlorer   # see http://esp8266.ru/esplorer/ 
     esp-open-sdk # git clone https://github.com/pfalcon/esp-open-sdk.git 
-    esptool # git clone https://github.com/themadinventor/esptool.git
-    micropython.1.8.2 # git clone https://github.com/micropython/micropython.git
+    micropython # git clone https://github.com/micropython/micropython.git
     webrepl # git clone https://github.com/micropython/webrepl.git
+    esptool # git clone https://github.com/themadinventor/esptool.git
+    ESPlorer   # see http://esp8266.ru/esplorer/ 
 
 Let's start with a bare ESP8266 device like WeMos.
 
 - Install latest version of micropython
-- reset device
+- Reset device
 - Connect to device with picocom (or other)
     picocom -b 115200
 - Set up first time webrepl with your own password
     import webrepl; webrepl.start()
-- open a browser with page 
-
+- open a browser with page webrepl.html in webrepl folder and configure for password
+- Upload sources with webrepl from browser
 - Fast Alternative use Makefile to upload
     make all
 
