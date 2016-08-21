@@ -3,7 +3,6 @@
 # Global import
 import socket  # Networking support
 import time    # Current time
-import network # Network IF
 
 # Local import
 from request import parse_request
@@ -11,7 +10,7 @@ from content import httpheader, httpfooter, cb_status, cb_setplace, cb_setplace,
 
 # A simple HTTP server
 class Server:
-  def __init__(self, port=80, title='ESPserver'):
+  def __init__(self, port=80, title='uServer'):
      # Constructor
      self.host = '0.0.0.0' # <-- works on all avaivable network interfaces
      self.port = port
@@ -23,13 +22,14 @@ class Server:
   def http_send(self, header, content, footer):
     for c in header:
         self.conn.send(c)
-    #if type(content) is list or type(content) is tuple:
+    # if type(content) is list or type(content) is tuple:
     if type(content) is list :
        for c in content:
           self.conn.send(c)
     elif content != '':
        self.conn.send(content)
-    if footer != '': self.conn.sendall(footer)
+    for c in footer:
+        self.conn.sendall(c)
 
   def activate_server(self):
      # Attempts to aquire the socket and launch the server
@@ -76,7 +76,7 @@ class Server:
          elif r['uri'] == b'/j' :
              content = cb_temperature_json(12)
              header = httpheader(200, self.title, extension='j')
-             self.http_send(header, content, '')
+             self.http_send(header, content, [])
          elif r['uri'] == b"/help":
              try:
                 with open('help.txt', 'r') as f:
@@ -88,6 +88,12 @@ class Server:
          elif r['uri'] == b'/status':
             header = httpheader(200, self.title)
             self.http_send(header, cb_status(), self.footer)
+         elif b'/config' in r['uri']:
+             header = httpheader(200, self.title)
+             for k,v in r['args']:
+                 set_config(k,v)
+             content = save_config()
+             self.http_send(header, content, self.footer)
          elif b'/setname' in r['uri']:
              if 'name' in r['args']:
                self.title = r['args']['name']

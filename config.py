@@ -1,4 +1,6 @@
+import network
 import ujson
+import machine
 
 config = {}
 config_updated = False
@@ -24,7 +26,25 @@ def save_config():
     global config
     # Write Configuration
     with open('config.txt', 'w') as f:
-        f.write(ujson.dumps(config))
+        j = ujson.dumps(config)
+        f.write(j)
+    config_updated = False
+    return j
 
+def set_config(k,v):
+    global config_updated
+    global config
+    config[k] = v
     config_updated = False
 
+def update_config(sta_if):
+    # Get Network Parameters
+    (address, mask, gateway, dns) = sta_if.ifconfig()
+
+    import ubinascii
+    config['address'] = address
+    config['mask'] = mask
+    config['gateway'] = gateway
+    config['dns'] = dns
+    config['macaddr'] = ubinascii.hexlify(sta_if.config('mac'), ':')
+    config['chipid'] = ubinascii.hexlify(machine.unique_id())

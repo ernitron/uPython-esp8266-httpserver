@@ -20,7 +20,7 @@ def parse_request(req):
    line, rest = req.split(b'\n', 1)
    method, uri, http = line.split(b' ')
 
-   Methods = b'GET HEAD POST PUT DELETE'
+   Methods = b'GET HEAD POST PUT'
    if method in Methods:
        r['uri'] = uri
        r['method'] = method

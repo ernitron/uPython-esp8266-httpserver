@@ -4,6 +4,8 @@
 # Path to uploader 
 UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
 ESPTOOL=/opt/ESP8266/esp-open-sdk/esptool/esptool.py
+ESPSEND=./espsend.py
+
 # Serial port
 #PORT=/dev/cu.SLAB_USBtoUART
 PORT=/dev/ttyUSB0
@@ -47,38 +49,41 @@ all: $(FILES) check
 	@python espsend.py -c -w
 	for f in $(FILES); \
 	do \
-		python $(UPLOADER) $$f $(DEV):/$$f ;\
+		(UPLOADER) $$f $(DEV):/$$f ;\
 	done;
 	@python espsend.py -r
 
 m: main.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(DEV):/$^
+	$(UPLOADER) $^ $(DEV):/$^
 h: httpserver.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(DEV):/$^
+	$(UPLOADER) $^ $(DEV):/$^
 	python espsend.py -r
 c: content.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(DEV):/$^
+	$(UPLOADER) $^ $(DEV):/$^
 f: config.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(DEV):/$^
+	$(UPLOADER) $^ $(DEV):/$^
 d: ds18b20.py 
 	@echo 'REMEMBER: import webrepl; webrepl.start()'
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(DEV):/$^
+	$(UPLOADER) $^ $(DEV):/$^
 q: request.py 
 	python espsend.py -c -w
-	python $(UPLOADER) $^ $(DEV):/$^
+	$(UPLOADER) $^ $(DEV):/$^
 r:  check
 	python espsend.py -c -r
 reset:  check
 	python espsend.py -c -r
+
+webrepl:
+	/opt/google/chrome/chrome file:///opt/ESP8266/webrepl/webrepl.html
 
 git:
 	git commit -m 'update' -a

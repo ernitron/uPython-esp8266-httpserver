@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
-import time    # Current time
+import time
 import network
-import machine
+import ds18b20
 import gc
 import config
-import ds18b20
 
 development = True
 
@@ -17,24 +16,10 @@ def do_connect(ssid, pwd):
     if not sta_if.isconnected():
         sta_if.active(True)
         sta_if.connect(ssid, pwd)
-        count = 0
         while not sta_if.isconnected():
-            count += 1
             time.sleep_ms(200)
+        #print('STA config: ', sta_if.ifconfig())
     return sta_if
-
-def update_config(sta_if):
-    # Get Network Parameters
-    sta_if = network.WLAN(network.STA_IF)
-    (address, mask, gateway, dns) = sta_if.ifconfig()
-
-    import ubinascii
-    config.config['address'] = address
-    config.config['mask'] = mask
-    config.config['gateway'] = gateway
-    config.config['dns'] = dns
-    config.config['macaddr'] = ubinascii.hexlify(sta_if.config('mac'), ':')
-    config.config['chipid'] = ubinascii.hexlify(machine.unique_id())
 
 #----------------------------------------------------------------
 # MAIN PROGRAM STARTS HERE
@@ -46,13 +31,15 @@ if __name__ == '__main__':
 
     # Read configuration from file if exists
     config.read_config()
-    print (config.config)
+    print(config.config)
 
     if 'ssid' not in config.config:
         config.config['ssid'] = 'DefaultSSID'
+        config.config['ssid'] = 'YpkeTron24'
 
     if 'pwd' not in config.config:
         config.config['pwd'] = 'DefaultPWD'
+        config.config['pwd'] = 'BellaBrutta789'
 
     if 'place' not in config.config:
         config.config['place'] = 'Set Place'
@@ -61,7 +48,7 @@ if __name__ == '__main__':
     sta_if = do_connect(config.config['ssid'], config.config['pwd'])
 
     # Update config with new values
-    update_config(sta_if)
+    config.update_config(sta_if)
 
     # Save configuration to file
     config.save_config()
@@ -74,7 +61,6 @@ if __name__ == '__main__':
     #except KeyboardInterrupt:
     #    raise
     #except Exception:
-    #
     #    if development != True:
     #       machine.reset()
 
