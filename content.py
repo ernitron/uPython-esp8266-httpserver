@@ -125,16 +125,17 @@ def cb_temperature_json(pin):
         temp, count, s = sensor.readtemp()
     except:
         sensor = None
-        return "{'temperature':85.0}"
+        return "{'temp':'85.0'}"
 
     temperaturedict = {}
     temperaturedict["temp"] = str(temp)
-    temperaturedict["count"] = str(count)
+    temperaturedict["count"] = count
     temperaturedict["mac"] = get_config('macaddr')
     temperaturedict["server"] = get_config('address')
-    temperaturedict["date"] = time.time()
     temperaturedict["place"] = get_config('place')
+    temperaturedict["chipid"] = get_config('chipid')
+    temperaturedict["date"] = time.time()
     temperaturedict["sensor"] = s
-    import ujson
-    return ujson.dumps(temperaturedict)
+    import json
+    return json.dumps(temperaturedict)
 

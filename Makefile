@@ -27,8 +27,10 @@ FILES := \
 	request.py \
 	content.py \
 	config.py \
-	help.txt \
 	httpserver.py \
+	help.txt \
+	header.txt \
+	footer.txt \
 
 help: 
 	@echo 'picocom -b 115200'

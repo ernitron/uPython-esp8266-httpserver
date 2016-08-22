@@ -6,7 +6,7 @@
 Server can be called with: http://192.168.1.123:8805/help
 <br>
 
-Configuration is kept into configuration.txt with json string with { 'key': value }
+Configuration is kept into config.txt with json string with { 'key': value }
 <br>
 You can change PLACE name, SSID and PASS to connect to an external WiFi AP.
 <br>

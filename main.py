@@ -24,6 +24,14 @@ def do_connect(ssid, pwd):
         print('STA config: ', sta_if.ifconfig())
     return sta_if
 
+def do_accesspoint(ssid, pwd):
+    ap_if = network.WLAN(network.AP_IF)
+    ap.config(essid=ssid, password=pwd)
+    ap_if.active(True)
+    time.sleep_ms(200)
+    print('Access Point config: ', ap_if.ifconfig())
+    return ap_if
+
 #----------------------------------------------------------------
 # MAIN PROGRAM STARTS HERE
 
@@ -41,6 +49,13 @@ if __name__ == '__main__':
 
     # Update config with new values
     update_config(sta_if)
+
+    # Access point is provided if in conf there are
+    chipid = get_config('chipid')
+    pwd = get_config('appwd')
+    if pwd != 'none':
+        ssid = 'YoT-'+chipid
+        do_accesspoint(ssid, pwd)
 
     gc.collect()
     print(gc.mem_free())
