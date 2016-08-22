@@ -10,7 +10,7 @@ import gc      # Current time
 # Local import
 from request import parse_request
 from config import save_config, read_config, set_config, get_config
-from content import httpheader, httpfooter, cb_index, cb_status, cb_setplace, cb_setplace, cb_setwifi
+from content import httpheader, httpfooter, cb_index, cb_status, cb_setplace, cb_setplace, cb_setwifi, cb_help
 from content import cb_temperature_init, cb_temperature, cb_temperature_json
 
 # A simple HTTP server
@@ -22,7 +22,7 @@ class Server:
      self.title = get_config('place')
      self.conn = None
      self.addr = None
-     self.footer = httpfooter()
+     self.footer = None
 
   def http_send(self, header, content, footer):
     for c in header:
@@ -65,6 +65,8 @@ class Server:
              if not h or h == b'\r\n':
                  break
 
+         self.footer = httpfooter()
+
          # determine request method (GET / POST are supported)
          r = parse_request(req)
          if r == None:
@@ -84,11 +86,7 @@ class Server:
              header = httpheader(200, self.title, extension='j')
              self.http_send(header, content, [])
          elif r['uri'] == b"/help":
-             try:
-                with open('help.txt', 'r') as f:
-                    content = f.readlines()
-             except:
-                content = ''
+             content = cb_help()
              header = httpheader(200, self.title)
              self.http_send(header, content, self.footer)
          elif r['uri'] == b'/status':

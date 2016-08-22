@@ -1,0 +1,16 @@
+</div>
+
+<footer class="footer">
+<a href="/">[ index</a> |
+<a href="/temperature">temperature</a> |
+<a href="/j">json</a>  |
+<a href="/setname">place</a> |
+<a href="/setwifi">wifi</a> |
+<a href="/status">status</a> |
+<a href="/reinit">reinit</a> |
+<a href="/help">help</a> ]
+</footer>
+
+<p>Vers. 1.2.1</p>
+
+</body></html>

@@ -13,36 +13,10 @@ from config import save_config, set_config, get_config
 # Global variables
 
 head0 = 'HTTP/1.1 %s\r\nServer: tempserver\r\nContent-Type: %s\r\n'
-
 head1 = 'Cache-Control: private, no-store\r\nConnection: close\r\n\r\n'
 
-head2 = '<!DOCTYPE html>\n'\
-        '<html lang="en">\n<head>\n<title>Temp %s</title>\n%s' \
-
-head3 = '<meta charset="UTF-8">\n' \
-        '<meta name="viewport" content="width=device-width, initial-scale=1">\n' \
-        '<script src="https://goo.gl/EWKTqQ"></script>\n' \
-        '<link rel="stylesheet" href="http://goo.gl/E7UCvM">\n' \
-        '<style media="screen" type="text/css">\n'\
-        'body {font-family: Georgia,serif;}\n</style>\n'\
-        '</head><body>\n'\
-        '<div class="container-fluid"><div class="jumbotron">\n'
-
-foot1 = '</div><footer class="footer">'\
-        '<a href="/">[ index</a> |'\
-        '<a href="/temperature">temperature</a> |'\
-        '<a href="/j">json</a> |'\
-        '<a href="/setname">place</a> |'\
-        '<a href="/setwifi">wifi</a> |'\
-        '<a href="/status">status</a> |'\
-        '<a href="/reinit">reinit</a> |'\
-        '<a href="/help">help</a> ]'\
-        '</footer>'
-
-foot2 = '<p>Vers. 1.2.1</body></html>'
-
 # HTML Codes
-codes = {200:" OK", 400:" Bad Request", 404:" Not Found", 302:" Redirect", 501:"Internal Server Error" }
+codes = {200:" OK", 400:" Bad Request", 404:" Not Found", 302:" Redirect", 501:"Server Error" }
 # MIME types
 mt = {'h': "text/html", 'j': "application/json"}
 def httpheader(code, title, extension='h', refresh=''):
@@ -53,12 +27,15 @@ def httpheader(code, title, extension='h', refresh=''):
    mimetype = mt[extension]
 
    if extension == 'j':
-       return [head0 % (httpstatus, mimetype), head1]
+       return [head0 % (httpstatus, mimetype), head1 ]
    else:
-       return [head0% (httpstatus, mimetype), head1, head2 % (title, refresh), head3]
+       with open('header.txt', 'r') as f:
+           head2 = f.readlines()
+       return [head0 % (httpstatus, mimetype), head1] + head2
 
 def httpfooter():
-    return [foot1, foot2]
+    with open('footer.txt', 'r') as f:
+        return f.readlines()
 
 # Content Functions
 def cb_index(title):
@@ -77,6 +54,10 @@ def cb_status():
            '<p>Free Mem: %d (alloc %d)' \
            '<p>Files: %s' \
            '<p>Uptime: %d"</div>' % (chipid, macaddr, address, gc.mem_free(), gc.mem_alloc(), filesystem, uptime)
+
+def cb_help():
+    with open('help.txt', 'r') as f:
+        return f.readlines()
 
 def cb_setplace(place):
     set_config('place', place)

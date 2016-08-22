@@ -2,10 +2,12 @@
 # Erni Tron ernitron@gmail.com
 # Copyright (c) 2016
 
+import ds18b20
 import time
 import network
 import gc
 from config import update_config, get_config
+
 
 development = True
 
