@@ -15,26 +15,47 @@ class ESPserial:
     def write(self, packet):
         self._port.write(packet)
 
+    def listdir(self):
+        self.write('\x03') # Send ^C
+        esp.write('import os; os.listdir()\r\n')
+
     def sendfile(self, file):
-        with open(file, 'r') as f:
-            lines = f.readlines()
 
         self.write('\x03') # Send ^C
-        esp.write('import webrepl; webrepl.start()\r\n')
-        self.write('\x05') # Send ^E
+        self.write('\x04') # Send ^D
+        time.sleep(1.0)
+        #esp.write('import webrepl; webrepl.start()\r\n')
+        esp.write('import gc; gc.collect()\r\n')
         time.sleep(0.02)
-        self.write('with open("%s", "w") as f:\r' % file)
+        self.write('f=open("%s", "wb")\r' % file)
+
+        with open(file, 'r') as f:
+            lines = f.readlines()
         for l in lines:
            if l[0] == '#':
                print ('Skip comment')
                continue
-           l1 = l.strip()
-           l2 = l1.split('#', 1)[0]
-           self.write(" a='''%s'''\r" % l2)
-           self.write(" f.write(a)\r")
-           time.sleep(0.02)
+           #l2 = l1.split('#', 1)[0]
+           if len(l) <= 1:
+               continue
+           l1 = l.strip('\n')
+           self.write("a=b'''%s\r'''\r" % l1)
+           self.write("f.write(a)\r")
+           time.sleep(0.10)
 
+        self.write("f.close()\r")
+        time.sleep(0.10)
+
+    def readfile(self, file):
+        self.write('\x03') # Send ^C
         self.write('\x04') # Send ^D
+        self.write('f=open("%s", "rb")\r' % file)
+        self.write('lines = f.readlines()\r')
+        self.write('for l in lines:\r' )
+        self.write(' print(l)\r')
+        self.write('\x08') # Send  Backspace
+        self.write('\r\n')
+        #self.write('\x04') # Send ^D
 
 if __name__ == '__main__':
     import argparse
@@ -42,12 +63,15 @@ if __name__ == '__main__':
     parser.add_argument('--port', action="store", default='/dev/ttyUSB0')
     parser.add_argument('--baud', action="store", default=115200)
     parser.add_argument('--file', action="store", default='')
+    parser.add_argument('--read', action="store", default='')
+    parser.add_argument('--rm', action="store", default='')
     parser.add_argument('-c', '--controlc', action="store_true", default=False)
     parser.add_argument('-w', '--webrepl', action="store_true", default=False)
     parser.add_argument('-r', '--reset', action="store_true", default=False)
     parser.add_argument('-l', '--list', action="store_true", default=False)
     parser.add_argument('-m', '--mem', action="store_true", default=False)
     parser.add_argument('-k', '--check', action="store_true", default=False)
+    parser.add_argument('-o', '--boot', action="store_true", default=False)
 
 
     args = parser.parse_args()
@@ -57,6 +81,9 @@ if __name__ == '__main__':
     if args.file != '':
         print("Sending File %s" % args.file)
         esp.sendfile(args.file)
+    if args.read != '':
+        print("Reading File %s" % args.read)
+        esp.readfile(args.read)
 
     if args.controlc == True:
         print("Sending Control-c")
@@ -69,7 +96,10 @@ if __name__ == '__main__':
     if args.list == True:
         print("Listing files on machine ")
         esp.write('import os; os.listdir()\r\n')
-        esp.write('import os; os.remove("wifi.config")\r\n')
+
+    if args.rm != '':
+        print("Removing file %s " % args.rm)
+        esp.write('import os; os.remove("%s")\r\n' % args.rm)
 
     if args.check == True:
         print("Check FW on machine ")
@@ -79,8 +109,9 @@ if __name__ == '__main__':
         print("Listing mem on machine ")
         esp.write('import esp; esp.meminfo()\r\n')
         esp.write('import micropython; micropython.mem_info()\r\n')
-        esp.write('import gc; gc.mem_alloc()\r\n')
-        esp.write('import gc; gc.mem_free()\r\n')
+        esp.write('import gc\r\n')
+        esp.write('gc.mem_alloc()\r\n')
+        esp.write('gc.mem_free()\r\n')
 
     if args.reset == True:
         print("Restarting machine ")

@@ -4,9 +4,8 @@
 
 import time
 import network
-import ds18b20
 import gc
-import config
+from config import update_config, get_config
 
 development = True
 
@@ -31,36 +30,22 @@ if __name__ == '__main__':
     # Enable automatic garbage collector
     gc.enable()
 
-    # Read configuration from file if exists
-    config.read_config()
-    print(config.config)
-
-    if 'ssid' not in config.config:
-        config.config['ssid'] = 'DefaultSSID'
-
-    if 'pwd' not in config.config:
-        config.config['pwd'] = 'DefaultPWD'
-
-    if 'place' not in config.config:
-        config.config['place'] = 'Set Place'
+    ssid = get_config('ssid')
+    pwd = get_config('pwd')
+    place = get_config('place')
 
     # Connect to Network and save if
-    sta_if = do_connect(config.config['ssid'], config.config['pwd'])
-    # Update config with new values
-    config.update_config(sta_if)
+    sta_if = do_connect(ssid, pwd)
 
-    # Save configuration to file
-    config.save_config()
+    # Update config with new values
+    update_config(sta_if)
+
+    gc.collect()
+    print(gc.mem_free())
 
     from httpserver import Server
-    s = Server(8805, config.config['place'])    # construct server object
+
+    s = Server(8805)    # construct server object
     s.activate_server() # activate and run
-    #try:
-    #    s.activate_server() # activate and run
-    #except KeyboardInterrupt:
-    #    raise
-    #except Exception:
-    #    if development != True:
-    #       machine.reset()
 
 

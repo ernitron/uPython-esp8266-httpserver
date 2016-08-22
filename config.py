@@ -13,9 +13,6 @@ def read_config():
     global config_updated
     global config
     # Get Configuration
-    if config_updated == True:
-        return config
-
     try:
         with open('config.txt', 'r') as f:
             c = f.read()
@@ -23,6 +20,8 @@ def read_config():
         config_updated = True
     except:
         pass
+
+    print(config)
     return config
 
 def save_config():
@@ -35,13 +34,27 @@ def save_config():
     config_updated = False
     return j
 
-def set_config(k,v):
+def set_config(k, v):
     global config_updated
     global config
     config[k] = v
     config_updated = False
 
+def get_config(k):
+    global config
+    global config_updated
+    if config_updated == False:
+        read_config()
+
+    if k in config:
+        return config[k]
+    else:
+        return 'none'
+
 def update_config(sta_if):
+    global config_updated
+    global config
+
     # Get Network Parameters
     (address, mask, gateway, dns) = sta_if.ifconfig()
 
@@ -52,3 +65,6 @@ def update_config(sta_if):
     config['dns'] = dns
     config['macaddr'] = ubinascii.hexlify(sta_if.config('mac'), ':')
     config['chipid'] = ubinascii.hexlify(machine.unique_id())
+
+    save_config()
+

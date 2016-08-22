@@ -5,11 +5,13 @@
 # Global import
 import socket  # Networking support
 import time    # Current time
+import gc      # Current time
 
 # Local import
 from request import parse_request
-from content import httpheader, httpfooter, cb_status, cb_setplace, cb_setplace, cb_setwifi, cb_temperature_init, cb_temperature, cb_temperature_json
-from config import save_config, read_config
+from config import save_config, read_config, set_config, get_config
+from content import httpheader, httpfooter, cb_index, cb_status, cb_setplace, cb_setplace, cb_setwifi
+from content import cb_temperature_init, cb_temperature, cb_temperature_json
 
 # A simple HTTP server
 class Server:
@@ -17,7 +19,7 @@ class Server:
      # Constructor
      self.host = '0.0.0.0' # <-- works on all avaivable network interfaces
      self.port = port
-     self.title = title
+     self.title = get_config('place')
      self.conn = None
      self.addr = None
      self.footer = httpfooter()
@@ -51,9 +53,10 @@ class Server:
      # Main loop awaiting connections
      self.socket.listen(1) # maximum number of queued connections
      refresh30 = '<meta http-equiv="refresh" content="300">\n'
+     error404 = '404 - Error'
 
      while True:
-         print ("Waiting...")
+         print ("Wait..")
          self.conn, self.addr = self.socket.accept()
          # conn - socket to client // addr - clients address
          req = self.conn.readline()
@@ -66,11 +69,11 @@ class Server:
          r = parse_request(req)
          if r == None:
              header = httpheader(404, self.title)
-             content = '404 - Error'
+             content = error404
              self.http_send(header, content, self.footer)
          elif r['uri'] == b'/' or r['uri'] == b'/index' :
              header = httpheader(200, self.title, refresh=refresh30)
-             content = '<h2>Server Ready %s</h2>' % self.title + cb_status()
+             content = cb_index(self.title)
              self.http_send(header, content, self.footer)
          elif r['uri'] == b'/temperature' :
              content = cb_temperature()
@@ -91,17 +94,11 @@ class Server:
          elif r['uri'] == b'/status':
             header = httpheader(200, self.title)
             self.http_send(header, cb_status(), self.footer)
-         elif b'/config' in r['uri']:
-             header = httpheader(200, self.title)
-             for k,v in r['args']:
-                 set_config(k,v)
-             content = save_config()
-             self.http_send(header, content, self.footer)
          elif b'/setname' in r['uri']:
              if 'name' in r['args']:
-               self.title = r['args']['name']
                header = httpheader(302, self.title, refresh='<meta http-equiv="refresh" content="2; url=/"/>')
                content = cb_setplace(self.title)
+               self.title = get_config('place')
              else:
                header = httpheader(200, self.title)
                content = '<p><form action="/setname">' \
@@ -140,9 +137,10 @@ class Server:
              self.http_send(header, content, self.footer)
          else:
              header = httpheader(404, self.title)
-             content = '404 - Error'
+             content = error404
              self.http_send(header, content, self.footer)
 
          # At end of loop just close socket and collect garbage
          self.conn.close()
+         gc.collect()
 
