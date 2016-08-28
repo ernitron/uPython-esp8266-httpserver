@@ -14,9 +14,6 @@ DATE=$(shell date +"%d %b %Y")
 PORT=/dev/ttyUSB0
 SPEED=115200
 
-DEV=192.168.1.144
-DEV=192.168.1.121
-DEV=192.168.1.51
 DEV=192.168.1.153
 
 ######################################################################
@@ -38,12 +35,11 @@ TEXT:= \
 	index.txt \
 
 MPYFILES := \
-	main.mpy \
-	ds18b20.mpy \
+	httpserver.mpy \
 	request.mpy \
 	content.mpy \
+	ds18b20.mpy \
 	config.mpy \
-	httpserver.mpy \
 	register.mpy \
 
 %.mpy: %.py
@@ -58,15 +54,14 @@ check: $(MPYCROSS)
 	rm -rf __pycache__
 	rm -f *.pyc
 
-all: $(MPYFILES)
+# Upload all
+all: main.py $(MPYFILES) $(TEXT)
 	$(ESPSEND) -p $(PORT) -c -w
 	for f in $^ ; \
 	do \
 		$(UPLOADER) $$f $(DEV):/$$f ;\
 	done;
-
-vi:
-	gvim $(FILES)
+	$(ESPSEND) -p $(PORT) -r
 
 # To flash firmware
 flash:
@@ -80,55 +75,8 @@ initmicro:
 	$(ESPSEND) -p $(PORT) --file net.py --target main.py
 	$(ESPSEND) -p $(PORT) -r 
 
-# Upload all
-allshell: $(MPYFILES) check
-	@echo 'REMEMBER: import webrepl; webrepl.start()'
-	@python espsend.py -c -w
-	for f in $(MPYFILES); \
-	do \
-		$(UPLOADER) $$f $(DEV):/$$f ;\
-	done; \
-	for f in $(TEXT); \
-	do \
-		$(UPLOADER) $$f $(DEV):/$$f ;\
-	done;
-	@python espsend.py -r
 
-m: main.py 
-	@echo 'REMEMBER: import webrepl; webrepl.start()'
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-f: config.mpy 
-	@echo 'REMEMBER: import webrepl; webrepl.start()'
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-d: ds18b20.mpy 
-	@echo 'REMEMBER: import webrepl; webrepl.start()'
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-g: register.mpy 
-	@echo 'REMEMBER: import webrepl; webrepl.start()'
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-h: httpserver.mpy 
-	@echo 'REMEMBER: import webrepl; webrepl.start()'
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-c: content.mpy 
-	@echo 'REMEMBER: import webrepl; webrepl.start()'
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-q: request.mpy 
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-hf: header.txt footer.txt
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-
-r:  
-	$(ESPSEND) -p $(PORT) -c -r
-
-reset:  check
+reset: check
 	$(ESPSEND) -p $(PORT) -c -r
 
 
@@ -139,12 +87,8 @@ git:
 	git commit -m 'update ${DATE}' -a
 	git push
 
+vi:
+	gvim $(FILES)
+
 clean:
 	rm -f *.pyc
-
-# Print usage
-usage:
-	@echo "make upload FILE=<file>  to upload a specific file (i.e make upload FILE:=request.py)"
-	@echo "make all           		to upload all"
-	@echo "make <x>                 where <x> is the initial of source file "
-
