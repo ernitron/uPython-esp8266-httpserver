@@ -19,9 +19,8 @@ def read_config():
         config = ujson.loads(c)
         config_updated = True
     except:
-        pass
+        print('Cannot read conf!!!')
 
-    print(config)
     return config
 
 def save_config():
@@ -32,6 +31,7 @@ def save_config():
         j = ujson.dumps(config)
         f.write(j)
     config_updated = False
+
     return j
 
 def set_config(k, v):
@@ -45,26 +45,10 @@ def get_config(k):
     global config_updated
     if config_updated == False:
         read_config()
-
     if k in config:
         return config[k]
     else:
         return 'none'
-
-def update_config(sta_if):
-    global config_updated
-    global config
-
-    # Get Network Parameters
-    (address, mask, gateway, dns) = sta_if.ifconfig()
-
-    import ubinascii
-    config['address'] = address
-    config['mask'] = mask
-    config['gateway'] = gateway
-    config['dns'] = dns
-    config['macaddr'] = ubinascii.hexlify(sta_if.config('mac'), ':')
-    config['chipid'] = ubinascii.hexlify(machine.unique_id())
 
     save_config()
 

@@ -2,19 +2,16 @@
 # Erni Tron ernitron@gmail.com
 # Copyright (c) 2016
 
-import ds18b20
 import time
 import network
 import gc
-from config import update_config, get_config
+import machine
 
+from config import read_config, get_config, set_config, save_config
 
 development = True
 
 def do_connect(ssid, pwd):
-    if ssid == None or pwd == None:
-        return None
-
     sta_if = network.WLAN(network.STA_IF)
     if not sta_if.isconnected():
         sta_if.active(True)
@@ -29,7 +26,7 @@ def do_accesspoint(ssid, pwd):
     ap.config(essid=ssid, password=pwd)
     ap_if.active(True)
     time.sleep_ms(200)
-    print('Access Point config: ', ap_if.ifconfig())
+    #print('AP config: ', ap_if.ifconfig())
     return ap_if
 
 #----------------------------------------------------------------
@@ -40,29 +37,71 @@ if __name__ == '__main__':
     # Enable automatic garbage collector
     gc.enable()
 
-    ssid = get_config('ssid')
-    pwd = get_config('pwd')
-    place = get_config('place')
+    # Start reading conf
+    config = read_config()
+
+    # Some defaults
+    if 'ssid' not in config: ssid = 'YpkeTron24'
+    else: ssid = get_config('ssid')
+    if 'pwd' not in config: pwd = 'BellaBrutta789'
+    else: pwd = get_config('pwd')
 
     # Connect to Network and save if
     sta_if = do_connect(ssid, pwd)
 
-    # Update config with new values
-    update_config(sta_if)
-
-    # Access point is provided if in conf there are
-    chipid = get_config('chipid')
-    pwd = get_config('appwd')
-    if pwd != 'none':
+    # Set here special parameters of this application so they can be modified
+    if 'appwd' in config:
+        pwd = get_config('appwd')
+        chipid = get_config('chipid')
         ssid = 'YoT-'+chipid
         do_accesspoint(ssid, pwd)
+    else:
+        ap_if = network.WLAN(network.AP_IF)
+        ap_if.active(False)
+
+    # Update config with new values
+    # Get Network Parameters
+    (address, mask, gateway, dns) = sta_if.ifconfig()
+    from ubinascii import hexlify
+    set_config('address', address)
+    set_config('mask', mask)
+    set_config('gateway', gateway)
+    set_config('dns', dns)
+    set_config('mac', hexlify(sta_if.config('mac'), ':'))
+    set_config('chipid', hexlify(machine.unique_id()))
+
+    # Important config init values to be set
+    if 'sensor' not in config :
+        set_config('sensor', 'temp-generic')
+
+    if 'develpment' not in config:
+        development = True
+
+    # Ok save it!
+    save_config()
+
+    # Free some memory
+    ssid = pwd = None
+    config = None
+
+    # Registering
+    register_url = get_config('register')
+    authorization = get_config('authorization')
+    if register_url != 'none' and authorization != 'none':
+        from register import register
+        tim = machine.Timer(-1)
+        tim.init(period=5000, mode=machine.Timer.PERIODIC, callback=lambda t:register(register_url, authorization))
 
     gc.collect()
-    print(gc.mem_free())
 
+    # Launch Server
     from httpserver import Server
-
     s = Server(8805)    # construct server object
-    s.activate_server() # activate and run
-
+    try:
+        s.activate_server() # activate and run
+    except KeyboardInterrupt:
+        raise
+    except Exception:
+        if development == False:
+            machine.reset()
 

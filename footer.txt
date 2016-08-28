@@ -4,6 +4,7 @@
 <a href="/">[ index</a> |
 <a href="/temperature">temperature</a> |
 <a href="/j">json</a>  |
+<a href="/conf">configuration</a> |
 <a href="/setname">place</a> |
 <a href="/setwifi">wifi</a> |
 <a href="/status">status</a> |
@@ -11,6 +12,7 @@
 <a href="/help">help</a> ]
 </footer>
 
-<p>Vers. 1.2.1</p>
+<p>Micropython Temperature Server - Vers. 1.2.1 - Copyright (C) Erni Tron - August 2016</p>
+
 
 </body></html>

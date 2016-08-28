@@ -9,9 +9,35 @@ import gc      # Current time
 
 # Local import
 from request import parse_request
-from config import save_config, read_config, set_config, get_config
-from content import httpheader, httpfooter, cb_index, cb_status, cb_setplace, cb_setplace, cb_setwifi, cb_help
-from content import cb_temperature_init, cb_temperature, cb_temperature_json
+from config import set_config, get_config
+from content import cb_index, cb_status, cb_setplace, cb_setplace, cb_setwifi, cb_help
+from content import cb_temperature, cb_temperature_json
+
+def httpheader(code, title, extension='h', refresh=''):
+   mt = {'h': "text/html", 'j': "application/json"}
+   codes = {200:" OK", 400:" Bad Request", 404:" Not Found", 302:" Redirect", 501:"Server Error" }
+   head0 = 'HTTP/1.1 %s\r\nServer: tempserver\r\nContent-Type: %s\r\n'
+   #head1 = 'Cache-Control: private, no-store\r\nConnection: close\r\n\r\n'
+   head1 = 'Connection: close\r\n\r\n'
+   head2 = ''
+
+   if code not in codes: code = 501
+
+   httpstatus = str(code) + codes[code]
+
+   if extension not in mt: extension = 'h'
+   mimetype = mt[extension]
+
+   if extension == 'j':
+       return [head0 % (httpstatus, mimetype), head1 ]
+   else:
+       with open('header.txt', 'r') as f:
+           head2 = f.readlines()
+       return [head0 % (httpstatus, mimetype), head1] + head2
+
+def httpfooter():
+    with open('footer.txt', 'r') as f:
+        return f.readlines()
 
 # A simple HTTP server
 class Server:
@@ -41,10 +67,10 @@ class Server:
      self.socket = socket.socket()
      try:
          self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-         print("HTTP server ", self.host, ":",self.port)
+         print("Server ", self.host, ":",self.port)
          self.socket.bind((self.host, self.port))
      except Exception as e:
-         print("No port: " , self.port)
+         print("No port: ", self.port)
          #self.socket.shutdown(socket.SHUT_RDWR) # is this implemented in uPython?
          return
      self.wait_for_connections()
@@ -66,8 +92,8 @@ class Server:
                  break
 
          self.footer = httpfooter()
-
          # determine request method (GET / POST are supported)
+         self.title = get_config('place')
          r = parse_request(req)
          if r == None:
              header = httpheader(404, self.title)
@@ -82,44 +108,27 @@ class Server:
              header = httpheader(200, self.title, refresh=refresh30)
              self.http_send(header, content, self.footer)
          elif r['uri'] == b'/j' :
-             content = cb_temperature_json(12)
+             content = cb_temperature_json()
              header = httpheader(200, self.title, extension='j')
              self.http_send(header, content, [])
-         elif r['uri'] == b"/help":
+         elif r['uri'] == b'/help':
              content = cb_help()
              header = httpheader(200, self.title)
              self.http_send(header, content, self.footer)
          elif r['uri'] == b'/status':
             header = httpheader(200, self.title)
             self.http_send(header, cb_status(), self.footer)
-         elif b'/setname' in r['uri']:
-             if 'name' in r['args']:
-               header = httpheader(302, self.title, refresh='<meta http-equiv="refresh" content="2; url=/"/>')
-               content = cb_setplace(self.title)
-               self.title = get_config('place')
+         elif b'/conf' in r['uri']:
+             if 'param' in r['args'] and 'value' in r['args']:
+               header = httpheader(302, self.title)
+               content = cb_setparam(r['args']['param'], r['args']['value'])
              else:
                header = httpheader(200, self.title)
-               content = '<p><form action="/setname">' \
-                         'Name <input type="text" name="name"> ' \
-                         '<input type="submit" value="Submit">' \
-                         '</form></p></div>'
-             self.http_send(header, content, self.footer)
-         elif b"/setwifi" in r['uri']:
-             if 'ssid' in r['args'] and 'pwd' in r['args']:
-                ssid = r['args']['ssid']
-                pwd = r['args']['pwd']
-                content = cb_setwifi(ssid, pwd)
-             else:
-                content = '<p><form action="/setwifi">' \
-                          'SSID <input type="text" name="ssid"> ' \
-                          'PASS <input type="text" name="pwd"> ' \
-                          '<input type="submit" value="Submit">' \
-                          '</form></p></div>'
-             header = httpheader(200, self.title)
+               content = cb_setparam(None, None) #with void arguments
              self.http_send(header, content, self.footer)
          elif r['uri'] == b'/reinit' :
              header = httpheader(200, self.title)
-             content = '<h2><a href="/">Machine restarts in 2 secs...</a></h2></div>'
+             content = '<h2><a href="/">Restart in 2\"</a></h2></div>'
              self.http_send(header, content, self.footer)
              time.sleep(2)
              import machine
@@ -130,7 +139,7 @@ class Server:
                 with open(myfile, 'r') as f:
                     content = f.readlines()
              except:
-                content = 'No such file %s' % myfile
+                content = 'No file %s' % myfile
              header = httpheader(200, self.title)
              self.http_send(header, content, self.footer)
          else:
