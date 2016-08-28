@@ -41,9 +41,9 @@ if __name__ == '__main__':
     config = read_config()
 
     # Some defaults
-    if 'ssid' not in config: ssid = 'YpkeTron24'
+    if 'ssid' not in config: ssid = 'XXX'
     else: ssid = get_config('ssid')
-    if 'pwd' not in config: pwd = 'BellaBrutta789'
+    if 'pwd' not in config: pwd = 'YYY'
     else: pwd = get_config('pwd')
 
     # Connect to Network and save if
