@@ -10,7 +10,7 @@ import gc      # Current time
 # Local import
 from request import parse_request
 from config import set_config, get_config
-from content import cb_index, cb_status, cb_setplace, cb_setplace, cb_setwifi, cb_help
+from content import cb_index, cb_status, cb_help, cb_setparam, cb_resetconf
 from content import cb_temperature, cb_temperature_json
 
 def httpheader(code, title, extension='h', refresh=''):
@@ -119,12 +119,19 @@ class Server:
             header = httpheader(200, self.title)
             self.http_send(header, cb_status(), self.footer)
          elif b'/conf' in r['uri']:
-             if 'param' in r['args'] and 'value' in r['args']:
+             if 'key' in r['args'] and 'value' in r['args']:
                header = httpheader(302, self.title)
-               content = cb_setparam(r['args']['param'], r['args']['value'])
+               content = cb_setparam(r['args']['key'], r['args']['value'])
+             elif 'key' in r['args'] :
+               header = httpheader(200, self.title)
+               content = cb_setparam(r['args']['key'], None)
              else:
                header = httpheader(200, self.title)
-               content = cb_setparam(None, None) #with void arguments
+               content = cb_setparam(None, None)
+             self.http_send(header, content, self.footer)
+         elif r['uri'] == b'/resetconf' :
+             header = httpheader(200, self.title)
+             content = cb_resetconf()
              self.http_send(header, content, self.footer)
          elif r['uri'] == b'/reinit' :
              header = httpheader(200, self.title)

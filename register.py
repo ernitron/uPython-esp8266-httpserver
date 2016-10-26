@@ -3,9 +3,9 @@ from content import cb_temperature_json
 from config import get_config
 from machine import Timer
 
-def register(url, authorization):
+def register(url, auth):
     content = cb_temperature_json()
-    header = 'Content-Type: application/json\r\n' + authorization + '\r\n'
+    header = 'Content-Type: application/json\r\nAuthorization: Basic %s\r\n' % auth
     http_post(url, header, content)
 
 def http_post(url, header, content):
@@ -23,6 +23,7 @@ def http_post(url, header, content):
     s.send(xmsg)
     s.sendall(content)
     s.close()
+    print('register sent')
 
     #while True:
     #    data = s.recv(100)

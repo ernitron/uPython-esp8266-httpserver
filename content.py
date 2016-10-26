@@ -8,7 +8,8 @@
 
 import gc
 import time
-from config import save_config, set_config, get_config
+import os
+from config import save_config, set_config, get_config, clean_config
 import ds18b20
 
 # Content Functions
@@ -18,8 +19,11 @@ def cb_index(title):
     return []
 
 def cb_status():
+    from ntptime import settime
+    settime()
+    (y, m, d, h, mm, s, c, u) = time.localtime()
+    datetime = '%d-%d-%d %d:%d:%d UTC' % (y, m, d, h, mm, s)
     uptime = time.time()
-    import os
     filesystem = os.listdir()
     chipid = get_config('chipid')
     macaddr = get_config('mac')
@@ -29,37 +33,38 @@ def cb_status():
            '<p>Address: %s' \
            '<p>Free Mem: %d (alloc %d)' \
            '<p>Files: %s' \
-           '<p>Uptime: %d"</div>' % (chipid, macaddr, address, gc.mem_free(), gc.mem_alloc(), filesystem, uptime)
+           '<p>Uptime: %d' \
+           '<p>Date Time: %s</div>' % (chipid, macaddr, address, gc.mem_free(), gc.mem_alloc(), filesystem, uptime, datetime)
 
 def cb_help():
     with open('help.txt', 'r') as f:
         return f.readlines()
     return []
 
-def cb_setplace(place):
-    set_config('place', place)
-    save_config()
-    return 'Place set to %s' % place
+def cb_resetconf():
+    clean_config()
+    return 'Configuration cleaned'
 
-def cb_setparam(param, value):
-    if param == None:
-        return '<p>Set configuration parameter<form action="/conf">' \
-               'Param <input type="text" name="param"> ' \
+def cb_setparam(key, value):
+    if value == None:
+        if key != None: kvalue = ' value="%s" ' % key
+        else: kvalue = ' '
+        with open('config.txt', 'r') as f:
+            co = f.readlines()
+        ret  = '<h2>Set configuration parameter</h2><form action="/conf">' \
+               'Param <input type="text" %s name="key"> ' \
                'Value <input type="text" name="value"> ' \
                '<input type="submit" value="Submit">' \
-               '</form></p></div>'
-    else:
-        set_config(param, value)
-        save_config()
-    return 'Param set to %s' % value
-
-def cb_setwifi(ssid, pwd):
-    if len(ssid) < 3 or len(pwd) < 8:
+               '</form></p>%s</div>' % (kvalue, co)
+        return ret
+    elif key in 'ssid' and len(value) < 3:
         return '<h2>WiFi too short, try again</h2>'
-    set_config('ssid', ssid)
-    set_config('pwd', pwd)
-    save_config()
-    return '<h2>WiFi set to %s %s</h2>' % (ssid, pwd)
+    elif key in 'pwd' and len(value) < 8:
+        return '<h2>WiFi too short, try again</h2>'
+    else:
+        set_config(key, value)
+        save_config()
+    return '<h2>Param %s set to %s</h2>' % (key, value)
 
 # Temperature sensor functions and global variable
 sensor = None
@@ -68,6 +73,8 @@ def cb_temperature_init():
     if sensor != None:
         return True
     gc.collect()
+    sensor = ds18b20.TempSensor()
+    return True
     try:
         sensor = ds18b20.TempSensor()
         return True

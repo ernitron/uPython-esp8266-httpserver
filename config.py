@@ -17,10 +17,10 @@ def read_config():
         with open('config.txt', 'r') as f:
             c = f.read()
         config = ujson.loads(c)
-        config_updated = True
     except:
-        print('Cannot read conf!!!')
+        config = {}
 
+    config_updated = True
     return config
 
 def save_config():
@@ -31,13 +31,20 @@ def save_config():
         j = ujson.dumps(config)
         f.write(j)
     config_updated = False
-
     return j
+
+def clean_config():
+    global config_updated
+    import os
+    os.remove('config.txt')
+    config_updated = False
 
 def set_config(k, v):
     global config_updated
     global config
-    config[k] = v
+    if v == '' or 'reset' in v :
+        config[k] = None
+    else: config[k] = v
     config_updated = False
 
 def get_config(k):
@@ -49,6 +56,4 @@ def get_config(k):
         return config[k]
     else:
         return 'none'
-
-    save_config()
 

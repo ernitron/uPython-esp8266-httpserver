@@ -21,6 +21,7 @@ DEV=192.168.1.153
 ######################################################################
 FILES := \
 	main.py \
+	realmain.py \
 	ds18b20.py \
 	request.py \
 	content.py \
@@ -33,8 +34,10 @@ TEXT:= \
 	header.txt \
 	footer.txt \
 	index.txt \
+	config.txt \
 
 MPYFILES := \
+	realmain.mpy \
 	httpserver.mpy \
 	request.mpy \
 	content.mpy \
@@ -45,8 +48,8 @@ MPYFILES := \
 %.mpy: %.py
 	$(MPYCROSS) $<
 
-default: 
-	@echo 'picocom -b 115200'
+default:
+	@echo 'picocom -b 115200 /dev/ttyUSB0'
 	@echo 'import webrepl; webrepl.start()'
 
 check: $(MPYCROSS)
@@ -61,6 +64,11 @@ all: main.py $(MPYFILES) $(TEXT)
 	do \
 		$(UPLOADER) $$f $(DEV):/$$f ;\
 	done;
+	$(ESPSEND) -p $(PORT) -r
+
+one: register.mpy
+	$(ESPSEND) -p $(PORT) -c -w
+	$(UPLOADER) $^ $(DEV):/$^
 	$(ESPSEND) -p $(PORT) -r
 
 # To flash firmware
@@ -79,7 +87,6 @@ initmicro:
 reset: check
 	$(ESPSEND) -p $(PORT) -c -r
 
-
 webrepl:
 	/opt/google/chrome/chrome file:///opt/ESP8266/webrepl/webrepl.html
 
@@ -92,3 +99,4 @@ vi:
 
 clean:
 	rm -f *.pyc
+	rm -f *.mpy
