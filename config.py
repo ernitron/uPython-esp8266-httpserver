@@ -55,5 +55,5 @@ def get_config(k):
     if k in config:
         return config[k]
     else:
-        return 'none'
+        return ''
 

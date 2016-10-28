@@ -1,20 +1,24 @@
 ######################################################################
 # User configuration
 ######################################################################
+# CHANGE DEVICE BEFORE BEGIN
+D=192.168.1.144
+
 # Path to uploader 
 UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
 ESPTOOL=/opt/ESP8266/esp-open-sdk/esptool/esptool.py
 ESPSEND=/usr/local/bin/espsend.py
 MPYCROSS=/opt/ESP8266/micropython/mpy-cross/mpy-cross
 
-DATE=$(shell date +"%d %b %Y")
+DATE=$(shell date +"%Y-%b-%d %H:%M:%S")
+VERSION=1.3.2
+
 
 # Serial port
 #PORT=/dev/cu.SLAB_USBtoUART
 PORT=/dev/ttyUSB0
 SPEED=115200
 
-DEV=192.168.1.153
 
 ######################################################################
 # End of user config
@@ -30,6 +34,7 @@ FILES := \
 	register.py \
 
 TEXT:= \
+	boot.py \
 	help.txt \
 	header.txt \
 	footer.txt \
@@ -48,7 +53,9 @@ MPYFILES := \
 %.mpy: %.py
 	$(MPYCROSS) $<
 
-default:
+instruction:
+	@echo "To flash firmware 1) make erase 2) make flash 3) make initmicro 4) make install"
+	@echo 'DONT FORGET TO CHANGE DEVICE IP ADDRESS'
 	@echo 'picocom -b 115200 /dev/ttyUSB0'
 	@echo 'import webrepl; webrepl.start()'
 
@@ -57,31 +64,39 @@ check: $(MPYCROSS)
 	rm -rf __pycache__
 	rm -f *.pyc
 
-# Upload all
-all: main.py $(MPYFILES) $(TEXT)
-	$(ESPSEND) -p $(PORT) -c -w
-	for f in $^ ; \
-	do \
-		$(UPLOADER) $$f $(DEV):/$$f ;\
-	done;
-	$(ESPSEND) -p $(PORT) -r
+# To flash firmware 1) make erase 2) make flash 3) make initmicro 4) make install
+erase:
+	$(ESPTOOL) --port $(PORT) erase_flash 
 
-one: register.mpy
-	$(ESPSEND) -p $(PORT) -c -w
-	$(UPLOADER) $^ $(DEV):/$^
-	$(ESPSEND) -p $(PORT) -r
-
-# To flash firmware
 flash:
-	export PATH="/opt/ESP8266/esp-open-sdk/xtensa-lx106-elf/bin/:$$PATH" ;\
-	$(ESPTOOL) --port $(PORT) erase_flash ;\
-	cd /opt/ESP8266/micropython/esp8266 ;\
-	make PORT=$(PORT) deploy
+	$(ESPTOOL) --port $(PORT) --baud 115200 write_flash --verify --flash_size=32m --flash_mode=qio 0x00000 /opt/ESP8266/micropython/esp8266/build/firmware-combined.bin
+	@echo 'Power device again'
 
 initmicro:
 	$(ESPSEND) -p $(PORT) -c 
 	$(ESPSEND) -p $(PORT) --file net.py --target main.py
 	$(ESPSEND) -p $(PORT) -r 
+
+# Upload all
+install: main.py $(MPYFILES) $(TEXT)
+	sed -i -e "s/Version.*--/Version ${VERSION} ${DATE}--/" footer.txt
+	$(ESPSEND) -p $(PORT) -c -w
+	for f in $^ ; \
+	do \
+		$(UPLOADER) $$f $(D):/$$f ;\
+	done;
+	$(ESPSEND) -p $(PORT) -r
+
+few: realmain.mpy ds18b20.mpy
+	sed -i -e "s/Version.*--/Version ${VERSION} ${DATE}--/" footer.txt
+	$(ESPSEND) -p $(PORT) -r
+	$(ESPSEND) --rm realmain.mpy
+	$(ESPSEND) -p $(PORT) -c -w
+	for f in $^ ; \
+	do \
+		$(UPLOADER) $$f $(D):/$$f ;\
+	done;
+	$(ESPSEND) -p $(PORT) -r
 
 
 reset: check

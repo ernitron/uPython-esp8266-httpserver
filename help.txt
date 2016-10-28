@@ -2,11 +2,9 @@
 </div>
 
 <p>Welcome to the ESP-8266 Temperature Server. <br/>
-
 Server can be called with: http://192.168.1.123:8805/help
 <br>
-This device can also provide an Access Point if it is configured with the parameter
-i.e. if bot 'accesspoint' AND 'appwd' are present in config
+This device can also provide an Access Point if it is configured with the parameter i.e. if the AP password 'appwd' is present in config
 <br/>
 
 SSID is something like YoT-1234567<br/>
@@ -17,6 +15,7 @@ PASS is in the manual<br/>
 Configuration is kept into config.txt in a json string with { 'key': value }
 <br>
 You can change/add parameters like PLACE name, SSID and PASS to connect to an external WiFi AP.
+
 PLACE, SSID, PASS are lowercase when set in Parameter
 <br>
 

@@ -5,15 +5,15 @@
 <a href="/temperature">temperature</a> |
 <a href="/j">json</a>  |
 <a href="/conf">configuration</a> |
-<a href="/resetconf">reset conf</a> |
 <a href="/conf/?key=place">set place</a> |
 <a href="/conf/?key=ssid">set wifi ssid</a> |
 <a href="/conf/?key=pwd">set wifi password</a> |
 <a href="/status">status</a> |
 <a href="/reinit">reinit</a> |
+<a href="/">resetconf</a> |
 <a href="/help">help</a> ]
 </footer>
 
-<p>Micropython Temperature Server - Vers. 1.2.2 - oct - Copyright (C) Erni Tron - 2016</p>
+<p>Micropython Temperature Server - Version 1.3.2 2016-ott-28 20:45:45-- Copyright (C) Erni Tron - 2016</p>
 
 </body></html>

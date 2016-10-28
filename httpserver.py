@@ -38,6 +38,7 @@ def httpheader(code, title, extension='h', refresh=''):
 def httpfooter():
     with open('footer.txt', 'r') as f:
         return f.readlines()
+    return []
 
 # A simple HTTP server
 class Server:

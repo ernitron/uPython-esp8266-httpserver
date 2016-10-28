@@ -15,7 +15,7 @@ class TempSensor():
   # D6	GPIO12	machine.Pin(12)
   def __init__(self, pin=12):
       self.read_count = 0
-      self.sensor = 'none'
+      self.sensor = 'ds18b20'
       self.temp = '85.0' # the default error temperature of ds18b20
       try:
           ow = onewire.OneWire(Pin(pin))
@@ -24,17 +24,21 @@ class TempSensor():
       except:
           self.present = False
           self.ds = None
+      self.readtemp()
 
-  def readtemp(self, n=1):
+  def sensorid(self):
+      return self.sensor
+
+  def readtemp(self, n=0):
     if self.present == False:
-        return ('85', self.read_count, 'none')
+        return ('85', 0, 'none')
     roms = self.ds.scan() # should we scan again?
     self.ds.convert_temp()
     time.sleep_ms(750)
     self.temp = self.ds.read_temp(roms[n])
     self.sensor = hexlify(roms[n])
-    self.read_count += 1
     self.present = True
+    self.read_count += 1
     return (self.temp, self.read_count, self.sensor)
 
     def status(self):
