@@ -75,10 +75,13 @@ def main():
         set_config('mac', hexlify(sta_if.config('mac'), ':'))
 
     # Set Time RTC
-    from ntptime import settime
-    settime()
-    (y, m, d, h, mm, s, c, u) = time.localtime()
-    set_config('starttime', '%d-%d-%d %d:%d:%d UTC' % (y, m, d, h, mm, s))
+    try:
+        from ntptime import settime
+        settime()
+        (y, m, d, h, mm, s, c, u) = time.localtime()
+        set_config('starttime', '%d-%d-%d %d:%d:%d UTC' % (y, m, d, h, mm, s))
+    except:
+        print('No standard time')
 
     # Ok now we save configuration!
     save_config()
@@ -92,7 +95,6 @@ def main():
         from register import register
         tim = machine.Timer(-1)
         tim.init(period=300000, mode=machine.Timer.PERIODIC, callback=lambda t:register(register_url, authorization))
-
 
     # Free some memory
     ssid = pwd = None

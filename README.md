@@ -118,6 +118,15 @@ Let's start with a bare ESP8266 device like WeMos.
 **    make initmicro
 **    make install
 
+## Configuration
+*Actually THERE IS NO config.txt file included* as it contains ssid and passwords and it is personal.
+
+Consider that a it can be pretty simple.  Just copy this in a file named config.txt and that's all to start
+
+    {"place": "Your Place Name", "ssid": "YourSSID", "pwd": "YourSSIDPassword"}
+
+Also it must be connected to Internet to have valid start time (or you can skip starttime into the code)
+
 ## Development
 
 There is plenty of space for development

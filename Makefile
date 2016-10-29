@@ -10,16 +10,17 @@ UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
 ESPTOOL=/opt/ESP8266/esp-open-sdk/esptool/esptool.py
 ESPSEND=/usr/local/bin/espsend.py
 MPYCROSS=/opt/ESP8266/micropython/mpy-cross/mpy-cross
+#FIRMWARE=/opt/ESP8266/micropython/esp8266/build/firmware-combined.bin
+FIRMWARE=./build/firmware-combined.bin
 
 DATE=$(shell date +"%Y-%b-%d %H:%M:%S")
 VERSION=1.3.2
 
-
 # Serial port
 #PORT=/dev/cu.SLAB_USBtoUART
+#PORT=/dev/ttyACM0
 PORT=/dev/ttyUSB0
 SPEED=115200
-
 
 ######################################################################
 # End of user config
@@ -71,7 +72,7 @@ erase:
 	$(ESPTOOL) --port $(PORT) erase_flash 
 
 flash:
-	$(ESPTOOL) --port $(PORT) --baud 115200 write_flash --verify --flash_size=32m --flash_mode=qio 0x00000 /opt/ESP8266/micropython/esp8266/build/firmware-combined.bin
+	$(ESPTOOL) --port $(PORT) --baud 115200 write_flash --verify --flash_size=32m --flash_mode=qio 0x00000 $(FIRMWARE)
 	@echo 'Power device again'
 
 initmicro:
