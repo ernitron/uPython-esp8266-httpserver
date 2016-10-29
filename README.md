@@ -17,7 +17,7 @@ which should be installed or configured in the proper directory
 # Requirements
 
 It needs micropython version 1.8.5
-> # git clone https://github.com/micropython/micropython.git
+    # git clone https://github.com/micropython/micropython.git
 
 Tested on Wemos D1 and Lolin V3 with ESP8266 chipset
 
