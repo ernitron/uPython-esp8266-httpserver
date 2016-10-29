@@ -15,6 +15,12 @@ which should be installed or configured in the proper directory
 
 - It uses other tools such as webrepl 
 
+
+# Requirements
+
+It needs micropython version 1.8.5
+    # git clone https://github.com/micropython/micropython.git
+
 # USAGE
 Server can be called with: http://192.168.1.123:8805/help 
 
@@ -79,11 +85,16 @@ Let's start with a bare ESP8266 device like WeMos.
 - open a browser with page webrepl.html in webrepl folder and configure for password
 - Upload sources with webrepl from browser
 
-- Fast Alternative use Makefile to 
+- Fast alternative use Makefile to make all.
+
     make erase
     make flash
     make initmicro
     make install
+
+## Development
+
+There is plenty of space for development
 
 ## Discussion
 
