@@ -2,7 +2,8 @@
 # User configuration
 ######################################################################
 # CHANGE DEVICE BEFORE BEGIN
-D=192.168.1.144
+D=149
+DEV=192.168.1.$(D)
 
 # Path to uploader 
 UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
@@ -54,8 +55,9 @@ MPYFILES := \
 	$(MPYCROSS) $<
 
 instruction:
-	@echo "To flash firmware 1) make erase 2) make flash 3) make initmicro 4) make install"
-	@echo 'DONT FORGET TO CHANGE DEVICE IP ADDRESS'
+	@echo "How to install:"
+	@echo "1) make erase 2) make flash 3) make initmicro 4) make install"
+	@echo 'DONT FORGET TO CHANGE DEVICE IP ADDRESS or use D=192.168.1.123'
 	@echo 'picocom -b 115200 /dev/ttyUSB0'
 	@echo 'import webrepl; webrepl.start()'
 
@@ -83,21 +85,19 @@ install: main.py $(MPYFILES) $(TEXT)
 	$(ESPSEND) -p $(PORT) -c -w
 	for f in $^ ; \
 	do \
-		$(UPLOADER) $$f $(D):/$$f ;\
+		$(UPLOADER) $$f $(DEV):/$$f ;\
 	done;
 	$(ESPSEND) -p $(PORT) -r
 
-few: realmain.mpy ds18b20.mpy
-	sed -i -e "s/Version.*--/Version ${VERSION} ${DATE}--/" footer.txt
+few: realmain.mpy content.mpy ds18b20.mpy ds18x20_et.mpy
 	$(ESPSEND) -p $(PORT) -r
 	$(ESPSEND) --rm realmain.mpy
 	$(ESPSEND) -p $(PORT) -c -w
 	for f in $^ ; \
 	do \
-		$(UPLOADER) $$f $(D):/$$f ;\
+		$(UPLOADER) $$f $(DEV):/$$f ;\
 	done;
 	$(ESPSEND) -p $(PORT) -r
-
 
 reset: check
 	$(ESPSEND) -p $(PORT) -c -r

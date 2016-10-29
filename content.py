@@ -74,9 +74,9 @@ def cb_temperature_init():
         return True
 
     gc.collect()
+    sensor = ds18b20.TempSensor()
+    set_config('sensor', sensor.sensorid())
     try:
-        sensor = ds18b20.TempSensor()
-        set_config('sensor', sensor.sensorid())
         save_config()
         return True
     except:
