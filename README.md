@@ -40,7 +40,7 @@ You can easily find all this stuff very cheap on aliexpress... just shop around 
 
 Expect to afford 6US$ !!!
 Isn't it fu**ing amazing?
-https://www.dropbox.com/s/mw0tacnw87kg23v/IMG_0580.JPG?dl=0
+![esp8266 temp sensor](https://www.dropbox.com/s/mw0tacnw87kg23v/IMG_0580.JPG?dl=0)
 
 I suggest to solder the 3 wires of the DS18B20 sensor directly on the Wemos D1 pins: 5V-GND-D4 i
 They are contiguous.
