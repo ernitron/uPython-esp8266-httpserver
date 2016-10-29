@@ -8,18 +8,16 @@ It is highly configurable with parameters for SSID, PWD, AP SSID and many others
 
 It is mainly a temperature web server. For devices like ESP8266 and with temperature sensors based on DS18b20. 
 
-- the http server is general purpose and is easy to customize and configure
-
-- the Makefile is pretty powerful and automatize a lot of common tasks upload and reset using the script espsend.py 
+*  the http server is general purpose and is easy to customize and configure
+*  the Makefile is pretty powerful and automatize a lot of common tasks upload and reset using the script espsend.py 
 which should be installed or configured in the proper directory
-
-- It uses other tools such as webrepl 
+*  It uses other tools such as webrepl 
 
 
 # Requirements
 
 It needs micropython version 1.8.5
-    # git clone https://github.com/micropython/micropython.git
+> # git clone https://github.com/micropython/micropython.git
 
 Tested on Wemos D1 and Lolin V3 with ESP8266 chipset
 
@@ -33,10 +31,10 @@ https://www.dropbox.com/s/mw0tacnw87kg23v/IMG_0580.JPG?dl=0
 
 You can easily find all this stuff very cheap on aliexpress... just shop around ;)
 
--Wemos D1 mini (around 3$)
--Cheap Charger (< 1$)
--Micro USB Cable 5cm (< 1$)
--Sensor DS18b20 (< 1$)
+* Wemos D1 mini (around 3$)
+* Cheap Charger (< 1$)
+* Micro USB Cable 5cm (< 1$)
+* Sensor DS18b20 (< 1$)
 
 Expect to afford 6US$ !!!
 
@@ -67,9 +65,8 @@ Conventionally contents are kept in cb_xyz() in content.py
 A Dallas DS18b20 temperature sensor must be installed on device. 
 On WeMos default GPIO for reading is either 12 or 2 as it has its own pullup resistor
 
-    D6	GPIO12	machine.Pin(12)
-
-    D4	GPIO2	machine.Pin(2)
+*   D6	GPIO12	machine.Pin(12)
+*   D4	GPIO2	machine.Pin(2)
 
 ## Implementation
 
@@ -83,8 +80,8 @@ The parser of requests works only on first line that has the request from browse
 Contents are produced with embedded html commands
 
 It uses BOOTSTRAP for css/js. I have made shortcuts url for the cdn repository:
-        https://goo.gl/EWKTqQ = https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js        
-        http://goo.gl/E7UCvM =  http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css
+* https://goo.gl/EWKTqQ = https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js        
+* http://goo.gl/E7UCvM =  http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css
 
 note: they are no more useful as files with html header are stored in flash and there is no need to shortcut them
 
@@ -95,29 +92,29 @@ This is a little tricky and I developed the espsend.py to automatize the uploadi
 
 I use the following tools to develop:
 
-    esp-open-sdk # git clone https://github.com/pfalcon/esp-open-sdk.git 
-    micropython # git clone https://github.com/micropython/micropython.git
-    webrepl # git clone https://github.com/micropython/webrepl.git
-    esptool # git clone https://github.com/themadinventor/esptool.git 
-    espsend.py # this is the script that goes on UART and make basic installation tasks.
+*   esp-open-sdk # git clone https://github.com/pfalcon/esp-open-sdk.git 
+*   micropython # git clone https://github.com/micropython/micropython.git
+*   webrepl # git clone https://github.com/micropython/webrepl.git
+*   esptool # git clone https://github.com/themadinventor/esptool.git 
+*   espsend.py # this is the script that goes on UART and make basic installation tasks.
 
 Let's start with a bare ESP8266 device like WeMos.
 
-- Install latest version of micropython
-- Reset device
-- Connect to device with picocom (or other)
+* Install latest version of micropython
+* Reset device
+* Connect to device with picocom (or other)
     picocom -b 115200
-- Set up first time webrepl with your own password
+* Set up first time webrepl with your own password
     import webrepl; webrepl.start()
-- open a browser with page webrepl.html in webrepl folder and configure for password
-- Upload sources with webrepl from browser
+* open a browser with page webrepl.html in webrepl folder and configure for password
+* Upload sources with webrepl from browser
 
-- Fast alternative use Makefile to make all.
+* Fast alternative use Makefile to make all.
 
-    make erase
-    make flash
-    make initmicro
-    make install
+**    make erase
+**    make flash
+**    make initmicro
+**    make install
 
 ## Development
 
