@@ -16,16 +16,18 @@ which should be installed or configured in the proper directory
 
 # Requirements
 
-It needs micropython version 1.8.5
+Software: based on micropython version 1.8.5. Probably latest and bleeding version works best.
+
     # git clone https://github.com/micropython/micropython.git
 
-Tested on Wemos D1 and Lolin V3 with ESP8266 chipset
+Hardware: Tested on Wemos D1 and Lolin V3 with ESP8266 chipset. For temperature a Dallas DS18b20 is needed wired to the device.
+
 
 # DIFY (Do It Fu**ing Yourself)
 
 Acutally I assemble all the stuff into a microappliance and I disseminate my places to track temperatures all around.
-Look at the pictures. Isn't it fu**ing amazing?
-https://www.dropbox.com/s/mw0tacnw87kg23v/IMG_0580.JPG?dl=0
+Look at the pictures. 
+
 
 ## BOM (Billing of Materials)
 
@@ -37,8 +39,11 @@ You can easily find all this stuff very cheap on aliexpress... just shop around 
 * Sensor DS18b20 (< 1$)
 
 Expect to afford 6US$ !!!
+Isn't it fu**ing amazing?
+https://www.dropbox.com/s/mw0tacnw87kg23v/IMG_0580.JPG?dl=0
 
-I suggest to solder the 3 wires of the DS18B20 sensor directly on the Wemos D1 pins: 5V-GND-D4 /they are contiguous
+I suggest to solder the 3 wires of the DS18B20 sensor directly on the Wemos D1 pins: 5V-GND-D4 i
+They are contiguous.
 
 No resistor is needed then (but check the code for the right PIN which is PIN=2).
 
@@ -47,9 +52,7 @@ Server can be called with: http://192.168.1.123:8805/help
 
 Many other configurations are possible
 
-For instance if you want to upload data to the cloud there is a asynchronous routine called 'register' that push into a server values with json format.
-
-The server that holds data can be found here:
+For instance if you want to upload data to the cloud there is a asynchronous routine called 'register' that push into a server values with json format. The server that holds data can be found here:
     https://github.com/ernitron/temperature-server
 
 ## STATIC FILES
