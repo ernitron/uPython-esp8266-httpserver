@@ -23,33 +23,36 @@ It needs micropython version 1.8.5
 
 Tested on Wemos D1 and Lolin V3 with ESP8266 chipset
 
-# DIY (Do It Fu**ing Yourself)
+# DIFY (Do It Fu**ing Yourself)
 
-Acutally I assemble all the stuff into a LESS THAN 5U$ microappliance and I disseminate my places to track temperature.
+Acutally I assemble all the stuff into a microappliance and I disseminate my places to track temperatures all around.
 Look at the pictures. Isn't it fu**ing amazing?
 https://www.dropbox.com/s/mw0tacnw87kg23v/IMG_0580.JPG?dl=0
 
 ## BOM (Billing of Materials)
 
-You can easily find all this stuff on aliexpress just shop around ;)
+You can easily find all this stuff very cheap on aliexpress... just shop around ;)
 
-Wemos D1 (around 2$)
+-Wemos D1 mini (around 3$)
+-Cheap Charger (< 1$)
+-Micro USB Cable 5cm (< 1$)
+-Sensor DS18b20 (< 1$)
 
-Cheap Charger 1A (< 1$)
+Expect to afford 6US$ !!!
 
-Micro USB Cable 5cm (< 1$)
+I suggest to solder the 3 wires of the DS18B20 sensor directly on the Wemos D1 pins: 5V-GND-D4 /they are contiguous
 
-Sensor DS18b20 (< 1$)
-
-I Suggest to solder the 3 wires of Sensor directly on the Wemos, 5V-GND-D4
 No resistor is needed then (but check the code for the right PIN which is PIN=2).
-
 
 # USAGE
 Server can be called with: http://192.168.1.123:8805/help 
 
-Many other configuration are possible
+Many other configurations are possible
 
+For instance if you want to upload data to the cloud there is a asynchronous routine called 'register' that push into a server values with json format.
+
+The server that holds data can be found here:
+    https://github.com/ernitron/temperature-server
 
 ## STATIC FILES
 HTML files can be added/uploaded into FLASH memory of device and will be served.
