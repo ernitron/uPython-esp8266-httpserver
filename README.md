@@ -1,6 +1,6 @@
 # uPython-esp8266-httpserver
 
-This is a General Purpose http server for ESP8266 written in uPython
+This is a General Purpose http server for ESP8266 written in micropython (www.micropython.org)
 It just serves static html files. Simply upload into flash any html files and she will serve them. 
 As an example put your index.html with just "hello world!" in it and you have the K&R standard greetings.
 
@@ -20,6 +20,30 @@ which should be installed or configured in the proper directory
 
 It needs micropython version 1.8.5
     # git clone https://github.com/micropython/micropython.git
+
+Tested on Wemos D1 and Lolin V3 with ESP8266 chipset
+
+# DIY (Do It Fu**ing Yourself)
+
+Acutally I assemble all the stuff into a LESS THAN 5U$ microappliance and I disseminate my places to track temperature.
+Look at the pictures. Isn't it fu**ing amazing?
+https://www.dropbox.com/s/mw0tacnw87kg23v/IMG_0580.JPG?dl=0
+
+## BOM (Billing of Materials)
+
+You can easily find all this stuff on aliexpress just shop around ;)
+
+Wemos D1 (around 2$)
+
+Cheap Charger 1A (< 1$)
+
+Micro USB Cable 5cm (< 1$)
+
+Sensor DS18b20 (< 1$)
+
+I Suggest to solder the 3 wires of Sensor directly on the Wemos, 5V-GND-D4
+No resistor is needed then (but check the code for the right PIN which is PIN=2).
+
 
 # USAGE
 Server can be called with: http://192.168.1.123:8805/help 
