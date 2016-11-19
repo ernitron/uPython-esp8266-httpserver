@@ -54,7 +54,7 @@ class TempSensor():
           h = (h+1) % 24 # TimeZone is GMT-2 hardcoded ;)
           T['date'] = '%d-%d-%d %d:%d:%d' % (Y, M, D, h, m, s)
       except:
-         T['date'] = time.time()
+          T['date'] = time.time()
       return T
 
 sensor = TempSensor()

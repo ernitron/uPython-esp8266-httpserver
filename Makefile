@@ -93,6 +93,7 @@ o: $(O).mpy
 	for f in $^ ; \
 	do \
 	    echo installing $$f ;\
+		$(AMPY) reset ;\
 		$(AMPY) put $$f ;\
 	done;
 

@@ -82,8 +82,8 @@ def main():
     register_url = config.get_config('register')
     authorization = config.get_config('authorization')
     if register_url != '' and authorization != '':
-        # When it starts send a register just to know we're alive
         from register import register
+        # When it starts send a register just to know we're alive
         tim = machine.Timer(-1)
         print('register init 5min')
         tim.init(period=300000, mode=machine.Timer.PERIODIC, callback=lambda t:register(register_url, authorization))
