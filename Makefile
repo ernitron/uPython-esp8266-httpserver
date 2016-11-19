@@ -1,26 +1,27 @@
 ######################################################################
 # User configuration
 ######################################################################
-# CHANGE DEVICE BEFORE BEGIN
-D=149
-DEV=192.168.1.$(D)
 
-# Path to uploader 
-UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
-ESPTOOL=/opt/ESP8266/esp-open-sdk/esptool/esptool.py
-ESPSEND=/usr/local/bin/espsend.py
+# Serial port
+# Windows
+#PORT=/dev/cu.SLAB_USBtoUART
+# MAC
+#PORT=/dev/ttyACM0
+# Linux Debian/Ubuntu
+PORT=/dev/ttyUSB0
+
+SPEED=115200
+
+# Path to programs
 MPYCROSS=/opt/ESP8266/micropython/mpy-cross/mpy-cross
-#FIRMWARE=/opt/ESP8266/micropython/esp8266/build/firmware-combined.bin
-FIRMWARE=./build/firmware-combined.bin
+ESPTOOL=/opt/ESP8266/esp-open-sdk/esptool/esptool.py
+# Install with sudo pip2 install adafruit-ampy
+AMPY=ampy -p $(PORT)
+FIRMWARE=/opt/ESP8266/micropython/esp8266/build/firmware-combined.bin
+#FIRMWARE=./build/firmware-combined.bin
 
 DATE=$(shell date +"%Y-%b-%d %H:%M:%S")
 VERSION=1.3.2
-
-# Serial port
-#PORT=/dev/cu.SLAB_USBtoUART
-#PORT=/dev/ttyACM0
-PORT=/dev/ttyUSB0
-SPEED=115200
 
 ######################################################################
 # End of user config
@@ -36,7 +37,6 @@ FILES := \
 	register.py \
 
 TEXT:= \
-	boot.py \
 	help.txt \
 	header.txt \
 	footer.txt \
@@ -51,60 +51,52 @@ MPYFILES := \
 	ds18b20.mpy \
 	config.mpy \
 	register.mpy \
+	#display.mpy \
 
 %.mpy: %.py
 	$(MPYCROSS) $<
 
 instruction:
 	@echo "How to install:"
-	@echo "1) make erase 2) make flash 3) make initmicro 4) make install"
-	@echo 'DONT FORGET TO CHANGE DEVICE IP ADDRESS or use D=192.168.1.123'
-	@echo 'picocom -b 115200 /dev/ttyUSB0'
-	@echo 'import webrepl; webrepl.start()'
+	@echo "1) make erase 2) make flash 3) make install"
 
-check: $(MPYCROSS)
-	python3 -m py_compile *.py
-	rm -rf __pycache__
-	rm -f *.pyc
+check: $(FILES)
+	for f in $^ ; \
+	do \
+	    echo compiling $$f ;\
+		$(MPYCROSS) $$f ;\
+	done;
+	#python3 -m py_compile *.py
+	#rm -rf __pycache__
+	#rm -f *.pyc
 
-# To flash firmware 1) make erase 2) make flash 3) make initmicro 4) make install
 erase:
 	$(ESPTOOL) --port $(PORT) erase_flash 
 
 flash:
+	@echo "Be sure about MEMORY SIZE"
 	$(ESPTOOL) --port $(PORT) --baud 115200 write_flash --verify --flash_size=32m --flash_mode=qio 0x00000 $(FIRMWARE)
 	@echo 'Power device again'
 
-initmicro:
-	$(ESPSEND) -p $(PORT) -c 
-	$(ESPSEND) -p $(PORT) --file net.py --target main.py
-	$(ESPSEND) -p $(PORT) -r 
-
 # Upload all
-install: main.py $(MPYFILES) $(TEXT)
+install: $(MPYFILES) $(TEXT) main.py
 	sed -i -e "s/Version.*--/Version ${VERSION} ${DATE}--/" footer.txt
-	$(ESPSEND) -p $(PORT) -c -w
 	for f in $^ ; \
 	do \
-		$(UPLOADER) $$f $(DEV):/$$f ;\
+	    echo installing $$f ;\
+	    $(AMPY) put $$f ;\
 	done;
-	$(ESPSEND) -p $(PORT) -r
 
-few: realmain.mpy content.mpy ds18b20.mpy ds18x20_et.mpy
-	$(ESPSEND) -p $(PORT) -r
-	$(ESPSEND) --rm realmain.mpy
-	$(ESPSEND) -p $(PORT) -c -w
+reset:
+	$(AMPY) reset
+
+O=config.mpy 
+o: $(O)
 	for f in $^ ; \
 	do \
-		$(UPLOADER) $$f $(DEV):/$$f ;\
+	    echo installing $$f ;\
+		$(AMPY) put $$f ;\
 	done;
-	$(ESPSEND) -p $(PORT) -r
-
-reset: check
-	$(ESPSEND) -p $(PORT) -c -r
-
-webrepl:
-	/opt/google/chrome/chrome file:///opt/ESP8266/webrepl/webrepl.html
 
 git:
 	git commit -m 'update ${DATE}' -a

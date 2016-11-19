@@ -13,11 +13,12 @@ from ubinascii import hexlify
 # Pin 12 is D6 on WeMos
 
 class TempSensor():
-  # D6	GPIO12	machine.Pin(12)
-  # D4	GPIO2	machine.Pin(2)
+  # D3	GPIO0	machine.Pin(0) no need external pullup resistor
+  # D4	GPIO2	machine.Pin(2) no need external pullup resistor
+  # D6	GPIO12	machine.Pin(12) need 4.7kohm pullup resistor
   def __init__(self, pin=12):
       self.read_count = 0
-      self.sensor = 'ds18b20'
+      self.sensor = 'null'
       self.temp = '85.0' # the default error temperature of ds18b20
       try:
          ow = OneWire(Pin(pin))
@@ -26,28 +27,30 @@ class TempSensor():
       except:
          self.present = False
          self.ds = None
-      self.readtemp()
 
   def readtemp(self, n=0):
-      if self.present == False:
-         return ('85', 0, 'none')
-      roms = self.ds.scan() # should we scan again?
-      self.ds.convert_temp()
-      time.sleep_ms(750)
-      self.temp = self.ds.read_temp(roms[n])
-      self.sensor = hexlify(roms[n])
-      self.present = True
-      self.read_count += 1
+      if self.present == True:
+          roms = self.ds.scan() # should we scan again?
+          self.ds.convert_temp()
+          time.sleep_ms(750)
+          self.temp = self.ds.read_temp(roms[n])
+          # 280b042800008019
+          # 28-80000028040b
+          self.sensor = hexlify(roms[n])
+          self.read_count += 1
+
       return (self.temp, self.read_count, self.sensor)
 
   def sensorid(self):
       return self.sensor
 
   def status(self):
+      self.readtemp()
       table = {}
-      if self.present != False:
-         table['temp'] = self.temp
-         table['count'] = self.read_count
-         table['sensor'] = self.sensor
-         table['date'] = time.time()
+      table['temp'] = self.temp
+      table['count'] = self.read_count
+      table['sensor'] = self.sensor
+      table['date'] = time.time()
       return table
+
+sensor = TempSensor()

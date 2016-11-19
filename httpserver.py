@@ -9,9 +9,9 @@ import gc      # Current time
 
 # Local import
 from request import parse_request
-from config import set_config, get_config
-from content import cb_index, cb_status, cb_help, cb_setparam, cb_resetconf
-from content import cb_temperature, cb_temperature_json
+from config import config
+from content import cb_index, cb_status, cb_help, cb_setparam, cb_resetconf, cb_listssid
+from content import cb_temperature, cb_temperature_json, cb_temperature_plain
 
 def httpheader(code, title, extension='h', refresh=''):
    mt = {'h': "text/html", 'j': "application/json"}
@@ -46,7 +46,7 @@ class Server:
      # Constructor
      self.host = '0.0.0.0' # <-- works on all avaivable network interfaces
      self.port = port
-     self.title = get_config('place')
+     self.title = config.get_config('place')
      self.conn = None
      self.addr = None
      self.footer = None
@@ -66,6 +66,7 @@ class Server:
   def activate_server(self):
      # Attempts to aquire the socket and launch the server
      self.socket = socket.socket()
+     self.socket.settimeout(10.0) # otherwise it will wait forever
      try:
          self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
          print("Server ", self.host, ":",self.port)
@@ -74,9 +75,9 @@ class Server:
          print("No port: ", self.port)
          #self.socket.shutdown(socket.SHUT_RDWR) # is this implemented in uPython?
          return
-     self.wait_for_connections()
+     self.footer = httpfooter()
 
-  def wait_for_connections(self):
+  def wait_connections(self):
      # Main loop awaiting connections
      self.socket.listen(1) # maximum number of queued connections
      refresh30 = '<meta http-equiv="refresh" content="300">\n'
@@ -84,27 +85,29 @@ class Server:
 
      while True:
          print ("Wait..")
-         self.conn, self.addr = self.socket.accept()
-         # conn - socket to client // addr - clients address
+         try:
+            self.conn, self.addr = self.socket.accept()
+         except: # Timeout
+            continue
+
          req = self.conn.readline()
+         # conn - socket to client // addr - clients address
          while True:
              h = self.conn.readline()
              if not h or h == b'\r\n':
                  break
 
-         self.footer = httpfooter()
          # determine request method (GET / POST are supported)
-         self.title = get_config('place')
          r = parse_request(req)
+         print('parse request ', r)
          if r == None:
              header = httpheader(404, self.title)
              content = error404
              self.http_send(header, content, self.footer)
-         elif r['uri'] == b'/' or r['uri'] == b'/index' :
+         elif r['uri'] == b'/index' :
              header = httpheader(200, self.title, refresh=refresh30)
-             content = cb_index(self.title)
-             self.http_send(header, content, self.footer)
-         elif r['uri'] == b'/temperature' :
+             self.http_send(header, cb_index(), self.footer)
+         elif r['uri'] == b'/temperature' or r['uri'] == b'/' :
              content = cb_temperature()
              header = httpheader(200, self.title, refresh=refresh30)
              self.http_send(header, content, self.footer)
@@ -117,8 +120,8 @@ class Server:
              header = httpheader(200, self.title)
              self.http_send(header, content, self.footer)
          elif r['uri'] == b'/status':
-            header = httpheader(200, self.title)
-            self.http_send(header, cb_status(), self.footer)
+             header = httpheader(200, self.title)
+             self.http_send(header, cb_status(), self.footer)
          elif b'/conf' in r['uri']:
              if 'key' in r['args'] and 'value' in r['args']:
                header = httpheader(302, self.title)
@@ -129,14 +132,21 @@ class Server:
              else:
                header = httpheader(200, self.title)
                content = cb_setparam(None, None)
+             self.title = config.get_config('place') # just in case
              self.http_send(header, content, self.footer)
-         elif r['uri'] == b'/resetconf' :
+
+         elif r['uri'] == b'/ssid' :
              header = httpheader(200, self.title)
-             content = cb_resetconf()
+             content = cb_listssid()
              self.http_send(header, content, self.footer)
-         elif r['uri'] == b'/reinit' :
+
+         elif r['uri'] == b'/setconf' :
              header = httpheader(200, self.title)
-             content = '<h2><a href="/">Restart in 2\"</a></h2></div>'
+             content = cb_setconf()
+             self.http_send(header, content, self.footer)
+         elif r['uri'] == b'/reboot' :
+             header = httpheader(200, self.title)
+             content = '<h2><a href="/">Reboot in 2\"</a></h2></div>'
              self.http_send(header, content, self.footer)
              time.sleep(2)
              import machine
@@ -144,11 +154,13 @@ class Server:
          elif r['file'] != b'':
              myfile = r['file']
              try:
+                if myfile == b'port_config.py': raise Exception
                 with open(myfile, 'r') as f:
                     content = f.readlines()
+                header = httpheader(200, self.title)
              except:
-                content = 'No file %s' % myfile
-             header = httpheader(200, self.title)
+                header = httpheader(404, self.title)
+                content = 'No such file %s' % myfile
              self.http_send(header, content, self.footer)
          else:
              header = httpheader(404, self.title)

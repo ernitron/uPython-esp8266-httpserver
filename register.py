@@ -17,9 +17,13 @@ def http_post(url, header, content):
         port = 80
     addr = socket.getaddrinfo(host, port)[0][-1]
     s = socket.socket()
-    s.connect(addr)
-    l = len(content)
-    xmsg = bytes('POST /%s HTTP/1.1\r\nHost: relayserver\r\nContent-Length:%d\r\n%s\r\n' % (path, l, header), 'utf8')
-    s.send(xmsg)
-    s.sendall(content)
-    s.close()
+    s.settimeout(4) # otherwise it will wait forever
+    try:
+        s.connect(addr)
+        l = len(content)
+        xmsg = bytes('POST /%s HTTP/1.1\r\nHost: relayserver\r\nContent-Length:%d\r\n%s\r\n' % (path, l, header), 'utf8')
+        s.send(xmsg)
+        s.sendall(content)
+        s.close()
+    except:
+        pass

@@ -8,13 +8,14 @@ import machine
 import gc
 
 from ubinascii import hexlify
-from config import read_config, get_config, set_config, save_config
+
+from config import config
 
 def do_connect(ssid, pwd):
     sta_if = network.WLAN(network.STA_IF)
     if pwd == '' or ssid == '':
         #sta_if.active(False)
-        print('NOT CONNECTED')
+        print('No connection')
         return None
     if not sta_if.isconnected():
         sta_if.active(True)
@@ -28,6 +29,7 @@ def do_accesspoint(ssid, pwd):
     ap_if = network.WLAN(network.AP_IF)
     if pwd == '' or ssid == '':
         ap_if.active(False)
+        print('Disabling AP')
         return None
     ap_if.config(essid=ssid, password=pwd)
     ap_if.active(True)
@@ -42,73 +44,64 @@ def main():
     # Enable automatic garbage collector
     gc.enable()
 
-    # Start reading conf
-    config = read_config()
+    config.read_config()
 
     # Get defaults
-    ssid = get_config('ssid')
-    pwd = get_config('pwd')
+    ssid = config.get_config('ssid')
+    pwd = config.get_config('pwd')
 
     # Connect to Network and save if
     sta_if = do_connect(ssid, pwd)
 
     chipid = hexlify(machine.unique_id())
-    set_config('chipid', chipid)
+    config.set_config('chipid', chipid)
 
     # Turn on Access Point only if AP PWD is present
     apssid = 'YoT-%s' % bytes.decode(chipid)
-    set_config('apssid', apssid)
-    appwd = get_config('appwd')
+    appwd = config.get_config('appwd')
     do_accesspoint(apssid, appwd)
 
-    print('Sleep')
-    time.sleep_ms(1000)
+    # To have time to press ^c
+    time.sleep(2)
 
     # Update config with new values
     # Get Network Parameters
     if sta_if != None:
         (address, mask, gateway, dns) = sta_if.ifconfig()
-        set_config('address', address)
-        set_config('mask', mask)
-        set_config('gateway', gateway)
-        set_config('dns', dns)
-        set_config('mac', hexlify(sta_if.config('mac'), ':'))
-
-    # Set Time RTC
-    try:
-        from ntptime import settime
-        settime()
-        (y, m, d, h, mm, s, c, u) = time.localtime()
-        set_config('starttime', '%d-%d-%d %d:%d:%d UTC' % (y, m, d, h, mm, s))
-    except:
-        print('No standard time')
+        config.set_config('address', address)
+        config.set_config('mask', mask)
+        config.set_config('gateway', gateway)
+        config.set_config('dns', dns)
+        config.set_config('mac', hexlify(sta_if.config('mac'), ':'))
 
     # Ok now we save configuration!
-    save_config()
-    print(config)
+    config.set_time()
+    config.save_config()
 
     # Registering
-    register_url = get_config('register')
-    authorization = get_config('authorization')
+    register_url = config.get_config('register')
+    authorization = config.get_config('authorization')
     if register_url != '' and authorization != '':
         # When it starts send a register just to know we're alive
         from register import register
         tim = machine.Timer(-1)
+        print('register init 5min')
         tim.init(period=300000, mode=machine.Timer.PERIODIC, callback=lambda t:register(register_url, authorization))
 
     # Free some memory
     ssid = pwd = None
     apssid = appwd = None
-    config = None
     address = mask = gateway = dns = None
     gc.collect()
 
     # Launch Server
     from httpserver import Server
     s = Server(8805)    # construct server object
+    s.activate_server() # activate and run
     try:
-        s.activate_server() # activate and run
+        s.wait_connections() # activate and run
     except KeyboardInterrupt:
         raise
     except Exception:
-        machine.reset()
+        #machine.reset()
+        pass

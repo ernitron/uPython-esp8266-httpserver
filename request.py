@@ -7,11 +7,24 @@ def get_args(uri):
    if uri == None or uri == b'' :
        return answer
    uri = bytes.decode(uri)
+   uri = urldecode(uri)
    if '?' in uri:
        params = uri.split('?')[1]
        if '=' in uri:
            answer = dict(item.split('=') for item in params.split('&'))
    return answer
+
+def urldecode(s):
+    s = s.replace('%21','!')
+    s = s.replace('%23','#')
+    s = s.replace('%24','$')
+    s = s.replace('%26','&')
+    s = s.replace('%27',"'")
+    s = s.replace('%28','(')
+    s = s.replace('%29',')')
+    s = s.replace('%2F','/')
+    s = s.replace('%3A',':')
+    return s
 
 # Parses the client's request.
 # Returns a dictionary containing pretty much everything

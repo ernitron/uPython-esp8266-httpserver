@@ -5,55 +5,52 @@
 import network
 import ujson
 import machine
+import time
 
-config = {}
-config_updated = False
+class Config():
+    def __init__(self):
+        self.config = {}
 
-def read_config():
-    global config_updated
-    global config
-    # Get Configuration
-    try:
-        with open('config.txt', 'r') as f:
-            c = f.read()
-        config = ujson.loads(c)
-    except:
-        config = {}
+    def read_config(self):
+        try:
+            with open('config.txt', 'rb') as f:
+                c = f.read()
+            self.config = ujson.loads(c)
+        except:
+            self.config = {}
 
-    config_updated = True
-    return config
+    def set_time(self):
+        # Set Time RTC
+        from ntptime import settime
+        try:
+            settime()
+            (y, m, d, h, mm, s, c, u) = time.localtime()
+            self.config['starttime'] = '%d-%d-%d %d:%d:%d UTC' % (y, m, d, h, mm, s)
+        except:
+            print('Cannot set time')
+            pass
 
-def save_config():
-    global config_updated
-    global config
-    # Write Configuration
-    with open('config.txt', 'w') as f:
-        j = ujson.dumps(config)
-        f.write(j)
-    config_updated = False
-    return j
+    def save_config(self):
+        # Write Configuration
+        with open('config.txt', 'wb') as f:
+            j = ujson.dumps(self.config)
+            f.write(j)
+        return j
 
-def clean_config():
-    global config_updated
-    import os
-    os.remove('config.txt')
-    config_updated = False
+    def clean_config(self):
+        self.config = {}
+        self.save_config()
 
-def set_config(k, v):
-    global config_updated
-    global config
-    if v == '' or 'reset' in v :
-        config[k] = None
-    else: config[k] = v
-    config_updated = False
+    def set_config(self, k, v):
+        if v == '' or 'reset' in v :
+            self.config[k] = None
+        else: self.config[k] = v
 
-def get_config(k):
-    global config
-    global config_updated
-    if config_updated == False:
-        read_config()
-    if k in config:
-        return config[k]
-    else:
-        return ''
+    def get_config(self, k=None):
+        if k == None:
+            return self.config
+        if k in self.config:
+            return self.config[k]
+        else: return ''
 
+config = Config()
