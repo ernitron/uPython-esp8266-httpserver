@@ -23,7 +23,7 @@ Software: based on micropython version 1.8.5. Probably latest and bleeding versi
 Hardware: Tested on Wemos D1 and Lolin V3 with ESP8266 chipset. For temperature a Dallas DS18b20 is needed wired to the device.
 
 
-# DIFY (Do It Fu**ing Yourself)
+# DIFY (Do It Yourself)
 
 Acutally I assemble all the stuff into a microappliance and I disseminate my places to track temperatures all around.
 Look at the pictures. 
