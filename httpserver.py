@@ -11,7 +11,7 @@ import gc      # Current time
 from request import parse_request
 from config import config
 from content import cb_index, cb_status, cb_help, cb_setparam, cb_resetconf, cb_listssid
-from content import cb_temperature, cb_temperature_json, cb_temperature_plain
+from content import cb_temperature, cb_temperature_json
 
 def httpheader(code, title, extension='h', refresh=''):
    mt = {'h': "text/html", 'j': "application/json"}
@@ -36,9 +36,11 @@ def httpheader(code, title, extension='h', refresh=''):
        return [head0 % (httpstatus, mimetype), head1] + head2
 
 def httpfooter():
-    with open('footer.txt', 'r') as f:
-        return f.readlines()
-    return []
+    try:
+        with open('footer.txt', 'r') as f:
+            return f.readlines()
+    except:
+        return []
 
 # A simple HTTP server
 class Server:
@@ -63,7 +65,7 @@ class Server:
     for c in footer:
         self.conn.sendall(c)
 
-  def activate_server(self):
+  def activate(self):
      # Attempts to aquire the socket and launch the server
      self.socket = socket.socket()
      self.socket.settimeout(10.0) # otherwise it will wait forever
@@ -83,10 +85,14 @@ class Server:
      refresh30 = '<meta http-equiv="refresh" content="300">\n'
      error404 = '404 - Error'
 
+     counting = 0
      while True:
-         print ("Wait..")
+         counting += 1
+         print ("Wait ", counting)
          try:
             self.conn, self.addr = self.socket.accept()
+         except KeyboardInterrupt:
+            return
          except: # Timeout
             continue
 
@@ -99,7 +105,6 @@ class Server:
 
          # determine request method (GET / POST are supported)
          r = parse_request(req)
-         print('parse request ', r)
          if r == None:
              header = httpheader(404, self.title)
              content = error404

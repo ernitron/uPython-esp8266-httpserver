@@ -60,15 +60,13 @@ instruction:
 	@echo "How to install:"
 	@echo "1) make erase 2) make flash 3) make install"
 
-check: $(FILES)
-	for f in $^ ; \
-	do \
-	    echo compiling $$f ;\
-		$(MPYCROSS) $$f ;\
-	done;
-	#python3 -m py_compile *.py
-	#rm -rf __pycache__
-	#rm -f *.pyc
+compile: $(MPYCROSS)
+	@echo "compile all to be compiled"
+
+check:
+	python3 -m py_compile *.py
+	rm -rf __pycache__
+	rm -f *.pyc
 
 erase:
 	$(ESPTOOL) --port $(PORT) erase_flash 
@@ -90,8 +88,8 @@ install: $(MPYFILES) $(TEXT) main.py
 reset:
 	$(AMPY) reset
 
-O=config.mpy 
-o: $(O)
+O=config
+o: $(O).mpy
 	for f in $^ ; \
 	do \
 	    echo installing $$f ;\

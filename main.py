@@ -1,3 +1,3 @@
-from realmain import main
+from real import main
 
 main()

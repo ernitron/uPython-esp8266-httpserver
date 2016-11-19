@@ -1,8 +1,11 @@
 import socket
-from content import cb_temperature_json
+from ds18b20 import sensor
+import json
 
 def register(url, auth):
-    content = cb_temperature_json()
+    # get the sensor status dictionary
+    T = sensor.status()
+    content = json.dumps(T)
     header = 'Content-Type: application/json\r\nAuthorization: Basic %s\r\n' % auth
     http_post(url, header, content)
     print('register sent to url')

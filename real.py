@@ -97,11 +97,11 @@ def main():
     # Launch Server
     from httpserver import Server
     s = Server(8805)    # construct server object
-    s.activate_server() # activate and run
+    s.activate()        # server activate with
     try:
         s.wait_connections() # activate and run
     except KeyboardInterrupt:
-        raise
+        pass
     except Exception:
         machine.reset()
         pass

@@ -38,19 +38,23 @@ class TempSensor():
           # 28-80000028040b
           self.sensor = hexlify(roms[n])
           self.read_count += 1
-
-      return (self.temp, self.read_count, self.sensor)
+      return self.temp
 
   def sensorid(self):
       return self.sensor
 
   def status(self):
       self.readtemp()
-      table = {}
-      table['temp'] = self.temp
-      table['count'] = self.read_count
-      table['sensor'] = self.sensor
-      table['date'] = time.time()
-      return table
+      T = {}
+      T['temp'] = str(self.temp)
+      T['count'] = self.read_count
+      T['sensor'] = self.sensor
+      try:
+          (Y, M, D, h, m, s, c, u) = time.localtime()
+          h = (h+1) % 24 # TimeZone is GMT-2 hardcoded ;)
+          T['date'] = '%d-%d-%d %d:%d:%d' % (Y, M, D, h, m, s)
+      except:
+         T['date'] = time.time()
+      return T
 
 sensor = TempSensor()

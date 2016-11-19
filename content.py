@@ -69,10 +69,6 @@ def cb_resetconf():
     config.clean_config()
     return 'Config cleaned'
 
-def cb_setconf():
-    config.save_config()
-    return 'Config saved'
-
 def cb_setparam(key, value):
     if value == None:
         if key != None: kvalue = 'value="%s"' % key
@@ -95,35 +91,30 @@ def cb_setparam(key, value):
 
 # Temperature Sensor contents
 from ds18b20 import sensor
-def cb_temperature_plain():
-    return sensor.readtemp()
 
 def cb_temperature():
-    temp, count, s = sensor.readtemp()
+    T = sensor.status()
     place = config.get_config('place')
     starttime = config.get_config('starttime')
-    now = datenow()
     content = '<h1><a href="/">%s: %s °C</a></h1>' \
-              '<p>Reading # %d @ %s' \
-              '</p>Device started at %s</div>' % (place, str(temp), count, now, starttime)
+              '<p>Sensor %s - Reading # %d @ %s' \
+              '</p>Started on %s</div>' % (place, T['temp'], T['sensor'], T['count'], T['date'], starttime)
     return content
 
 def cb_temperature_json():
-    temp, count, s = sensor.readtemp()
-    config.set_config('sensor', sensor.sensorid())
-    table = {}
-    table["temp"] = str(temp)
-    table["count"] = count
-    table["mac"] = config.get_config('mac')
-    table["server"] = config.get_config('address')
-    table["place"] = config.get_config('place')
-    table["chipid"] = config.get_config('chipid')
-    table["date"] = datenow()
-    table["sensor"] = s
-    return json.dumps(table)
+    T = sensor.status()
+    # Now add some configuration params
+    T['mac'] = config.get_config('mac')
+    T['server'] = config.get_config('address')
+    T['place'] = config.get_config('place')
+    T['chipid'] = config.get_config('chipid')
+    return json.dumps(T)
 
 def datenow():
-    (Y, M, D, h, m, s, c, u) = time.localtime()
-    h = (h+2) % 24 # TimeZone is GMT-2 hardcoded ;)
-    return '%d-%d-%d %d:%d:%d' % (Y, M, D, h, m, s)
+    try:
+        (Y, M, D, h, m, s, c, u) = time.localtime()
+        h = (h+1) % 24 # TimeZone is GMT-2 hardcoded ;)
+        return '%d-%d-%d %d:%d:%d' % (Y, M, D, h, m, s)
+    except:
+        return time.time()
 
