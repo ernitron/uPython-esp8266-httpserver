@@ -1,6 +1,5 @@
 import socket
 from content import cb_temperature_json
-from machine import Timer
 
 def register(url, auth):
     content = cb_temperature_json()

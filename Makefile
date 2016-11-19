@@ -28,7 +28,7 @@ VERSION=1.3.2
 ######################################################################
 FILES := \
 	main.py \
-	realmain.py \
+	real.py \
 	ds18b20.py \
 	request.py \
 	content.py \
@@ -44,7 +44,7 @@ TEXT:= \
 	config.txt \
 
 MPYFILES := \
-	realmain.mpy \
+	real.mpy \
 	httpserver.mpy \
 	request.mpy \
 	content.mpy \
