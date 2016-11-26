@@ -32,18 +32,17 @@ class Config():
 
     def save_config(self):
         # Write Configuration
+        j = ujson.dumps(self.config)
         with open('config.txt', 'wb') as f:
-            j = ujson.dumps(self.config)
             f.write(j)
-        return j
 
     def clean_config(self):
         self.config = {}
         self.save_config()
 
     def set_config(self, k, v):
-        if v == '' or 'reset' in v :
-            self.config[k] = None
+        if v == '' or 'delete' in v :
+            del self.config[k]
         else: self.config[k] = v
 
     def get_config(self, k=None):

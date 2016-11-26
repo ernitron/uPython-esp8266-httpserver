@@ -67,16 +67,14 @@ class Server:
 
   def activate(self):
      # Attempts to aquire the socket and launch the server
-     self.socket = socket.socket()
-     self.socket.settimeout(10.0) # otherwise it will wait forever
      try:
+         self.socket = socket.socket()
+         self.socket.settimeout(5.0) # otherwise it will wait forever
          self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-         print("Server ", self.host, ":",self.port)
          self.socket.bind((self.host, self.port))
+         print("Server ", self.host, ":",self.port)
      except Exception as e:
-         print("No port: ", self.port)
-         #self.socket.shutdown(socket.SHUT_RDWR) # is this implemented in uPython?
-         return
+         print(e)
      self.footer = httpfooter()
 
   def wait_connections(self):
@@ -88,15 +86,22 @@ class Server:
      counting = 0
      while True:
          counting += 1
-         print ("Wait ", counting)
+         print("Wait ", counting)
+
          try:
             self.conn, self.addr = self.socket.accept()
          except KeyboardInterrupt:
             return
-         except: # Timeout
+         except:
+            print('Timeout')
             continue
 
-         req = self.conn.readline()
+         try:
+            req = self.conn.readline()
+         except:
+            print('Timeout readline')
+            continue
+
          # conn - socket to client // addr - clients address
          while True:
              h = self.conn.readline()

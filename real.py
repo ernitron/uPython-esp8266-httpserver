@@ -6,28 +6,46 @@ import time
 import network
 import machine
 import gc
-
 from ubinascii import hexlify
 
 from config import config
 
 def do_connect(ssid, pwd):
     sta_if = network.WLAN(network.STA_IF)
-    if pwd == '' or ssid == '':
-        #sta_if.active(False)
-        print('No connection')
+
+    # Stage zero if credential are null void connection
+    if not pwd or not ssid :
+        print('Disconnect from all known networks')
+        sta_if.active(False)
         return None
+
+    # Stage one check for default connection
+    t = 10
+    while t > 0:
+        time.sleep_ms(200)
+        if sta_if.isconnected():
+            print('Connect to default: ', sta_if.ifconfig())
+            return sta_if
+        t -= 1
+
+    # Stage two if not yet connected force active and connect with ssid/pwd
     if not sta_if.isconnected():
         sta_if.active(True)
         sta_if.connect(ssid, pwd)
-        while not sta_if.isconnected():
+        t = 10
+        while t > 0:
             time.sleep_ms(200)
-        #print('STA config: ', sta_if.ifconfig())
-    return sta_if
+            if sta_if.isconnected():
+                print('Connect to: ', sta_if.ifconfig())
+                return sta_if
+            t -= 1
+    # No way we are not connected
+    print('Cant Connect')
+    return None
 
 def do_accesspoint(ssid, pwd):
     ap_if = network.WLAN(network.AP_IF)
-    if pwd == '' or ssid == '':
+    if not pwd or not ssid :
         ap_if.active(False)
         print('Disabling AP')
         return None
@@ -44,48 +62,57 @@ def main():
     # Enable automatic garbage collector
     gc.enable()
 
+    if machine.reset_cause() == machine.DEEPSLEEP_RESET:
+        print('woke from a deep sleep')
+    else:
+        print('power on or hard reset')
+
+    # Read from file the whole configuration
     config.read_config()
 
-    # Get defaults
+    # Get chip id and previous one to compare them
+    chipid = hexlify(machine.unique_id())
+    chipid_config = config.get_config('chipid')
+
+    # Get WiFi defaults and connect
     ssid = config.get_config('ssid')
     pwd = config.get_config('pwd')
-
-    # Connect to Network and save if
     sta_if = do_connect(ssid, pwd)
 
-    chipid = hexlify(machine.unique_id())
-    config.set_config('chipid', chipid)
+    if sta_if == None:
+        # Turn on Access Point only if AP PWD is present
+        apssid = 'YoT-%s' % bytes.decode(chipid)
+        appwd = config.get_config('appwd')
+        sta_if = do_accesspoint(apssid, appwd)
 
-    # Turn on Access Point only if AP PWD is present
-    apssid = 'YoT-%s' % bytes.decode(chipid)
-    appwd = config.get_config('appwd')
-    do_accesspoint(apssid, appwd)
-
-    # To have time to press ^c
-    time.sleep(2)
-
-    # Update config with new values
-    # Get Network Parameters
     if sta_if != None:
+        # Get Network Parameters
         (address, mask, gateway, dns) = sta_if.ifconfig()
         config.set_config('address', address)
         config.set_config('mask', mask)
         config.set_config('gateway', gateway)
         config.set_config('dns', dns)
         config.set_config('mac', hexlify(sta_if.config('mac'), ':'))
+    else:
+        print('No connection? exiting')
+        return
 
-    # Ok now we save configuration!
+    # We can set the time now
     config.set_time()
-    config.save_config()
+
+    # We will save new configuration only if we have changed chip
+    if chipid != chipid_config:
+        config.set_config('chipid', chipid)
+        # Save configuration ONLY if it does not the same
+        config.save_config()
 
     # Registering
     register_url = config.get_config('register')
     authorization = config.get_config('authorization')
-    if register_url != '' and authorization != '':
+    if register_url and authorization : # if both are not null
         from register import register
         # When it starts send a register just to know we're alive
         tim = machine.Timer(-1)
-        print('register init 5min')
         tim.init(period=300000, mode=machine.Timer.PERIODIC, callback=lambda t:register(register_url, authorization))
 
     # Free some memory
@@ -96,12 +123,18 @@ def main():
 
     # Launch Server
     from httpserver import Server
-    s = Server(8805)    # construct server object
-    s.activate()        # server activate with
+    server = Server(8805)    # construct server object
+    server.activate()        # server activate with
     try:
-        s.wait_connections() # activate and run
+        server.wait_connections() # activate and run for a while
     except KeyboardInterrupt:
         pass
-    except Exception:
+    except Exception as e:
+        print(e)
+        print('Restart in 10')
+        time.sleep(10.0)
         machine.reset()
-        pass
+
+    # If everything was ok we go to sleep for a while
+    # from gotosleep import gotosleep
+    #gotosleep()

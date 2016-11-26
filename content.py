@@ -16,9 +16,11 @@ from config import config
 
 # Content Functions
 def cb_index():
-    with open('index.txt', 'r') as f:
-        return f.readlines()
-    return []
+    try:
+        with open('index.txt', 'r') as f:
+            return f.readlines()
+    except:
+        return []
 
 def cb_status():
     datetime = datenow()

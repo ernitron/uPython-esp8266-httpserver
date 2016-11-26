@@ -56,11 +56,19 @@ MPYFILES := \
 %.mpy: %.py
 	$(MPYCROSS) $<
 
+O=config
+o: $(O).mpy
+	for f in $^ ; \
+	do \
+	    echo installing $$f ;\
+		$(AMPY) put $$f ;\
+	done;
+
 instruction:
 	@echo "How to install:"
 	@echo "1) make erase 2) make flash 3) make install"
 
-compile: $(MPYCROSS)
+compile: $(MPYFILES)
 	@echo "compile all to be compiled"
 
 check:
@@ -88,14 +96,6 @@ install: $(MPYFILES) $(TEXT) main.py
 reset:
 	$(AMPY) reset
 
-O=config
-o: $(O).mpy
-	for f in $^ ; \
-	do \
-	    echo installing $$f ;\
-		$(AMPY) reset ;\
-		$(AMPY) put $$f ;\
-	done;
 
 git:
 	git commit -m 'update ${DATE}' -a

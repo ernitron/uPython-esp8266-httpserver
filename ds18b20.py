@@ -18,25 +18,26 @@ class TempSensor():
   # D6	GPIO12	machine.Pin(12) need 4.7kohm pullup resistor
   def __init__(self, pin=12):
       self.read_count = 0
-      self.sensor = 'null'
+      self.sensor = 'Null'
       self.temp = '85.0' # the default error temperature of ds18b20
+      self.roms = None
       try:
-         ow = OneWire(Pin(pin))
-         self.ds = ds18x20.DS18X20(ow)
-         self.present = True
+          ow = OneWire(Pin(pin))
+          self.ds = ds18x20.DS18X20(ow)
+          self.roms = self.ds.scan() # should we scan again?
+          self.present = True
       except:
-         self.present = False
-         self.ds = None
+          self.present = False
+          self.ds = None
 
   def readtemp(self, n=0):
       if self.present == True:
-          roms = self.ds.scan() # should we scan again?
           self.ds.convert_temp()
           time.sleep_ms(750)
-          self.temp = self.ds.read_temp(roms[n])
+          self.temp = self.ds.read_temp(self.roms[n])
           # 280b042800008019
           # 28-80000028040b
-          self.sensor = hexlify(roms[n])
+          self.sensor = hexlify(self.roms[n])
           self.read_count += 1
       return self.temp
 

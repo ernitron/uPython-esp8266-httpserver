@@ -15,15 +15,9 @@ def get_args(uri):
    return answer
 
 def urldecode(s):
-    s = s.replace('%21','!')
-    s = s.replace('%23','#')
-    s = s.replace('%24','$')
-    s = s.replace('%26','&')
-    s = s.replace('%27',"'")
-    s = s.replace('%28','(')
-    s = s.replace('%29',')')
-    s = s.replace('%2F','/')
-    s = s.replace('%3A',':')
+    table = {'%21':'!' ,'%23':'#' ,'%24':'$' ,'%26':'&' ,'%27':"'" ,'%28':'(' ,'%29':')' ,'%2F':'/' ,'%3A':':'}
+    #for k, v in table:
+    #    s = s.replace(k, v)
     return s
 
 # Parses the client's request.
