@@ -2,6 +2,7 @@ import socket
 from content import cb_temperature_json
 
 def register(url, auth):
+    if not url: return
     # get the sensor status dictionary
     content = cb_temperature_json()
     header = 'Content-Type: application/json\r\nAuthorization: Basic %s\r\n' % auth

@@ -15,12 +15,13 @@ import json
 from config import config
 
 # Content Functions
-def cb_index():
+def cb_open(filename):
     try:
-        with open('index.txt', 'r') as f:
+        if filename == b'port_config.py': raise
+        with open(filename, 'r') as f:
             return f.readlines()
     except:
-        return []
+        return ['No such file']
 
 def cb_status():
     datetime = datenow()
@@ -37,45 +38,16 @@ def cb_status():
            '<p>Uptime: %d' \
            '<p>Date Time: %s' \
            '<p>Start Time: %s'  \
-           '<p>Config: %s'  \
-           '</div>' % (chipid, macaddr, address, gc.mem_free(), gc.mem_alloc(), uptime, datetime, starttime, conf)
+           '</div>' % (chipid, macaddr, address, gc.mem_free(), gc.mem_alloc(), uptime, datetime, starttime)
 
-def cb_help():
-    with open('help.txt', 'r') as f:
-        return f.readlines()
-    return []
+def cb_getconf():
+    return '<h2>Configuration</h2><p>%s</p>' % json.dumps(config.get_config(None))
 
-def cb_listssid():
-    response_header = """
-        <h1>Wi-Fi Client Setup</h1>
-        <form action="configure" method="post">
-          <label for="ssid">SSID</label>
-          <select name="ssid" id="ssid">
-    """
-
-    response_variable = ""
-    import network
-    sta_if = network.WLAN(network.STA_IF)
-    for ssid, *_ in if_sta.scan():
-        response_variable += '<option value="{0}">{0}</option>'.format(ssid.decode("utf-8"))
-
-    response_footer = """
-           </select> <br/>
-           Password: <input name="password" type="password"></input> <br />
-           <input type="submit" value="Submit">
-         </form>
-    """
-    return response_header + response_variable + response_footer
-
-def cb_resetconf():
-    config.clean_config()
-    return 'Config cleaned'
-
-def cb_setparam(key, value):
+def cb_setconf(key, value):
     if value == None:
         if key != None: kvalue = 'value="%s"' % key
         else: kvalue = ' '
-        ret  = '<h2>Set configuration parameter</h2><form action="/conf">' \
+        ret  = '<h2>Set configuration parameter</h2><form action="/setconf">' \
                'Param <input type="text" %s name="key"> ' \
                'Value <input type="text" name="value"> ' \
                '<input type="submit" value="Submit">' \
@@ -90,7 +62,30 @@ def cb_setparam(key, value):
         config.save_config()
     return '<h2>Param %s set to %s</h2>' % (key, value)
 
+def cb_resetconf():
+    config.clean_config()
+    return 'Config cleaned'
 
+def cb_listssid():
+    response_header = """
+        <h1>Wi-Fi Client Setup</h1>
+        <form action="/setconf" method="post">
+          <label for="ssid">SSID</label>
+          <select name="ssid" id="ssid">"""
+
+    response_variable = ''
+    import network
+    sta_if = network.WLAN(network.STA_IF)
+    for ssid, *_ in if_sta.scan():
+        response_variable += '<option value="{0}">{0}</option>'.format(ssid.decode("utf-8"))
+
+    response_footer = """
+           </select> <br/>
+           Password: <input name="password" type="password"></input> <br />
+           <input type="submit" value="Submit">
+         </form>
+    """
+    return response_header + response_variable + response_footer
 # Temperature Sensor contents
 from ds18b20 import sensor
 

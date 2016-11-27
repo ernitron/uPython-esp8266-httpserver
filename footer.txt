@@ -1,19 +1,19 @@
 </div>
 
 <footer class="footer">
-<a href="/index">[ index</a> |
+<a href="/index.txt">[ index</a> |
 <a href="/temperature">temperature</a> |
 <a href="/j">json</a>  |
-<a href="/conf">configuration</a> |
-<a href="/conf/?key=place">set place</a> |
-<a href="/conf/?key=ssid">set wifi ssid</a> |
-<a href="/conf/?key=pwd">set wifi password</a> |
+<a href="/getconf">get conf</a> |
+<a href="/setconf">set conf</a> |
+<a href="/setconf/?key=place">set place</a> |
+<a href="/setconf/?key=ssid">set wifi ssid</a> |
+<a href="/setconf/?key=pwd">set wifi password</a> |
 <a href="/status">status</a> |
 <a href="/reboot">reboot</a> |
-<a href="/">resetconf</a> |
-<a href="/help">help</a> ]
+<a href="/help.txt">help</a> ]
 </footer>
 
-<p>Micropython Temperature Server - Version 1.3.2 2016-nov-26 15:53:10-- Copyright (C) Erni Tron - 2016</p>
+<p>Micropython Temperature Server - Version 1.3.2 2016-nov-26 18:07:55-- Copyright (C) Erni Tron - 2016</p>
 
 </body></html>

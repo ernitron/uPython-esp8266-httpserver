@@ -10,7 +10,7 @@ import gc      # Current time
 # Local import
 from request import parse_request
 from config import config
-from content import cb_index, cb_status, cb_help, cb_setparam, cb_resetconf, cb_listssid
+from content import cb_open, cb_status, cb_getconf, cb_setconf, cb_resetconf
 from content import cb_temperature, cb_temperature_json
 
 def httpheader(code, title, extension='h', refresh=''):
@@ -51,7 +51,6 @@ class Server:
      self.title = config.get_config('place')
      self.conn = None
      self.addr = None
-     self.footer = None
 
   def http_send(self, header, content, footer):
     for c in header:
@@ -62,6 +61,7 @@ class Server:
           self.conn.send(c)
     elif content != '':
        self.conn.send(content)
+
     for c in footer:
         self.conn.sendall(c)
 
@@ -75,16 +75,30 @@ class Server:
          print("Server ", self.host, ":",self.port)
      except Exception as e:
          print(e)
-     self.footer = httpfooter()
-
-  def wait_connections(self):
-     # Main loop awaiting connections
      self.socket.listen(1) # maximum number of queued connections
+
+  def wait_connections(self, sta_if):
+     # Main loop awaiting connections
      refresh30 = '<meta http-equiv="refresh" content="300">\n'
      error404 = '404 - Error'
+     footer = httpfooter()
+
+     from register import register
+     rurl = config.get_config('register')
+     auth = config.get_config('authorization')
 
      counting = 0
+     startime = time.time()
      while True:
+         if not sta_if.isconnected():
+             print('Disconnected...')
+             return
+
+         nowtime = time.time()
+         if nowtime-startime > 299: # means every 60*5 = 300 sec == 5 mins
+             register(rurl, auth)
+             startime = time.time()
+
          counting += 1
          print("Wait ", counting)
 
@@ -113,71 +127,46 @@ class Server:
          if r == None:
              header = httpheader(404, self.title)
              content = error404
-             self.http_send(header, content, self.footer)
-         elif r['uri'] == b'/index' :
-             header = httpheader(200, self.title, refresh=refresh30)
-             self.http_send(header, cb_index(), self.footer)
          elif r['uri'] == b'/temperature' or r['uri'] == b'/' :
-             content = cb_temperature()
              header = httpheader(200, self.title, refresh=refresh30)
-             self.http_send(header, content, self.footer)
+             content = cb_temperature()
          elif r['uri'] == b'/j' :
-             content = cb_temperature_json()
              header = httpheader(200, self.title, extension='j')
+             content = cb_temperature_json()
              self.http_send(header, content, [])
-         elif r['uri'] == b'/help':
-             content = cb_help()
-             header = httpheader(200, self.title)
-             self.http_send(header, content, self.footer)
+             continue
          elif r['uri'] == b'/status':
              header = httpheader(200, self.title)
-             self.http_send(header, cb_status(), self.footer)
-         elif b'/conf' in r['uri']:
+             content = cb_status()
+         elif r['uri'] == b'/getconf':
+             header = httpheader(200, self.title)
+             content = cb_getconf()
+         elif b'/setconf' in r['uri']:
              if 'key' in r['args'] and 'value' in r['args']:
                header = httpheader(302, self.title)
-               content = cb_setparam(r['args']['key'], r['args']['value'])
+               content = cb_setconf(r['args']['key'], r['args']['value'])
              elif 'key' in r['args'] :
                header = httpheader(200, self.title)
-               content = cb_setparam(r['args']['key'], None)
+               content = cb_setconf(r['args']['key'], None)
              else:
                header = httpheader(200, self.title)
-               content = cb_setparam(None, None)
+               content = cb_setconf(None, None)
              self.title = config.get_config('place') # just in case
-             self.http_send(header, content, self.footer)
-
-         elif r['uri'] == b'/ssid' :
-             header = httpheader(200, self.title)
-             content = cb_listssid()
-             self.http_send(header, content, self.footer)
-
-         elif r['uri'] == b'/setconf' :
-             header = httpheader(200, self.title)
-             content = cb_setconf()
-             self.http_send(header, content, self.footer)
          elif r['uri'] == b'/reboot' :
              header = httpheader(200, self.title)
-             content = '<h2><a href="/">Reboot in 2\"</a></h2></div>'
-             self.http_send(header, content, self.footer)
-             time.sleep(2)
-             import machine
-             machine.reset()
+             content = '<h2>Reboot</h2></div>'
+             self.http_send(header, content, footer)
+             return
          elif r['file'] != b'':
              myfile = r['file']
-             try:
-                if myfile == b'port_config.py': raise Exception
-                with open(myfile, 'r') as f:
-                    content = f.readlines()
-                header = httpheader(200, self.title)
-             except:
-                header = httpheader(404, self.title)
-                content = 'No such file %s' % myfile
-             self.http_send(header, content, self.footer)
+             header = httpheader(200, self.title)
+             content = cb_open(myfile)
          else:
              header = httpheader(404, self.title)
              content = error404
-             self.http_send(header, content, self.footer)
 
          # At end of loop just close socket and collect garbage
+         self.http_send(header, content, footer)
          self.conn.close()
          gc.collect()
 

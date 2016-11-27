@@ -19,28 +19,23 @@ def do_connect(ssid, pwd):
         sta_if.active(False)
         return None
 
-    # Stage one check for default connection
-    t = 10
-    while t > 0:
-        time.sleep_ms(200)
-        if sta_if.isconnected():
-            print('Connect to default: ', sta_if.ifconfig())
-            return sta_if
-        t -= 1
+    sta_if.active(True)
 
-    # Stage two if not yet connected force active and connect with ssid/pwd
-    if not sta_if.isconnected():
-        sta_if.active(True)
-        sta_if.connect(ssid, pwd)
-        t = 10
-        while t > 0:
-            time.sleep_ms(200)
-            if sta_if.isconnected():
-                print('Connect to: ', sta_if.ifconfig())
-                return sta_if
-            t -= 1
+    # Stage one check for default connection
+    print('Connecting')
+    t = 0
+    while t < 120:
+        time.sleep_ms(500)
+        if sta_if.isconnected():
+            print('Yes! Connected')
+            return sta_if
+        if t == 60:  # if still not connected force
+            print('Try ', ssid)
+            sta_if.connect(ssid, pwd)
+        t += 1
+
     # No way we are not connected
-    print('Cant Connect')
+    print('Cant connect', ssid)
     return None
 
 def do_accesspoint(ssid, pwd):
@@ -94,8 +89,9 @@ def main():
         config.set_config('dns', dns)
         config.set_config('mac', hexlify(sta_if.config('mac'), ':'))
     else:
-        print('No connection? exiting')
-        return
+        print('Restart in 10')
+        time.sleep(10.0)
+        machine.reset()
 
     # We can set the time now
     config.set_time()
@@ -107,13 +103,13 @@ def main():
         config.save_config()
 
     # Registering
-    register_url = config.get_config('register')
-    authorization = config.get_config('authorization')
-    if register_url and authorization : # if both are not null
+    rurl = config.get_config('register')
+    auth = config.get_config('authorization')
+    if rurl and auth: # if both are not null
         from register import register
         # When it starts send a register just to know we're alive
-        tim = machine.Timer(-1)
-        tim.init(period=300000, mode=machine.Timer.PERIODIC, callback=lambda t:register(register_url, authorization))
+        #tim = machine.Timer(-1)
+        #tim.init(period=300000, mode=machine.Timer.PERIODIC, callback=lambda t:register(rurl, auth))
 
     # Free some memory
     ssid = pwd = None
@@ -126,14 +122,16 @@ def main():
     server = Server(8805)    # construct server object
     server.activate()        # server activate with
     try:
-        server.wait_connections() # activate and run for a while
+        server.wait_connections(sta_if) # activate and run for a while
     except KeyboardInterrupt:
         pass
     except Exception as e:
         print(e)
-        print('Restart in 10')
-        time.sleep(10.0)
-        machine.reset()
+
+    # Restart
+    print('Restart in 10')
+    time.sleep(10.0)
+    machine.reset()
 
     # If everything was ok we go to sleep for a while
     # from gotosleep import gotosleep
