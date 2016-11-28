@@ -14,6 +14,6 @@
 <a href="/help.txt">help</a> ]
 </footer>
 
-<p>Micropython Temperature Server - Version 1.3.2 2016-nov-26 18:07:55-- Copyright (C) Erni Tron - 2016</p>
+<p>Micropython Temperature Server - Version 1.3.2 2016-nov-28 09:55:35-- Copyright (C) Erni Tron - 2016</p>
 
 </body></html>

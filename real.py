@@ -10,45 +10,38 @@ from ubinascii import hexlify
 
 from config import config
 
-def do_connect(ssid, pwd):
-    sta_if = network.WLAN(network.STA_IF)
+def do_connect(ssid, pwd, TYPE):
+    interface = network.WLAN(TYPE)
 
     # Stage zero if credential are null void connection
     if not pwd or not ssid :
         print('Disconnect from all known networks')
-        sta_if.active(False)
+        interface.active(False)
         return None
 
-    sta_if.active(True)
+    interface.active(True)
+    if TYPE == network.AP_IF:
+        time.sleep_ms(200)
+        interface.config(essid=ssid, password=pwd)
+        return interface
 
     # Stage one check for default connection
     print('Connecting')
     t = 0
     while t < 120:
         time.sleep_ms(500)
-        if sta_if.isconnected():
-            print('Yes! Connected')
-            return sta_if
-        if t == 60:  # if still not connected force
-            print('Try ', ssid)
-            sta_if.connect(ssid, pwd)
+        if interface.isconnected():
+            #print('Yes! Connected')
+            return interface
+        if t == 60 :
+            # if still not connected force
+            #print('Try ', ssid)
+            interface.connect(ssid, pwd)
         t += 1
 
     # No way we are not connected
     print('Cant connect', ssid)
     return None
-
-def do_accesspoint(ssid, pwd):
-    ap_if = network.WLAN(network.AP_IF)
-    if not pwd or not ssid :
-        ap_if.active(False)
-        print('Disabling AP')
-        return None
-    ap_if.config(essid=ssid, password=pwd)
-    ap_if.active(True)
-    time.sleep_ms(200)
-    print('AP config: ', ap_if.ifconfig())
-    return ap_if
 
 #----------------------------------------------------------------
 # MAIN PROGRAM STARTS HERE
@@ -72,13 +65,13 @@ def main():
     # Get WiFi defaults and connect
     ssid = config.get_config('ssid')
     pwd = config.get_config('pwd')
-    sta_if = do_connect(ssid, pwd)
+    sta_if = do_connect(ssid, pwd, network.STA_IF)
 
     if sta_if == None:
         # Turn on Access Point only if AP PWD is present
         apssid = 'YoT-%s' % bytes.decode(chipid)
         appwd = config.get_config('appwd')
-        sta_if = do_accesspoint(apssid, appwd)
+        sta_if = do_connect(apssid, appwd, network.AP_IF)
 
     if sta_if != None:
         # Get Network Parameters
@@ -119,13 +112,15 @@ def main():
 
     # Launch Server
     from httpserver import Server
-    server = Server(8805)    # construct server object
-    server.activate()        # server activate with
+    server = Server()    # construct server object
+    server.activate(8805)        # server activate with
     try:
         server.wait_connections(sta_if) # activate and run for a while
     except KeyboardInterrupt:
         pass
     except Exception as e:
+        import sys
+        sys.print_exception(e)
         print(e)
 
     # Restart
