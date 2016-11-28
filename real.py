@@ -3,6 +3,7 @@
 # Copyright (c) 2016
 
 import time
+import sys
 import network
 import machine
 import gc
@@ -82,7 +83,7 @@ def main():
         config.set_config('dns', dns)
         config.set_config('mac', hexlify(sta_if.config('mac'), ':'))
     else:
-        print('Restart in 10')
+        print('Restart 10"')
         time.sleep(10.0)
         machine.reset()
 
@@ -114,20 +115,27 @@ def main():
     from httpserver import Server
     server = Server()    # construct server object
     server.activate(8805)        # server activate with
+
+    # now we introduce the sleep concept
+    sleep = config.get_config('sleep')
+    if not sleep: sleep = 300 # we stay awake for 30 secs and sleep for 300 (=5 minutes)
+
     try:
-        server.wait_connections(sta_if) # activate and run for a while
+        server.wait_connections(sta_if, int(sleep/10)) # activate and run for a while
     except KeyboardInterrupt:
         pass
     except Exception as e:
-        import sys
         sys.print_exception(e)
         print(e)
 
     # Restart
-    print('Restart in 10')
-    time.sleep(10.0)
+    print('Restarting')
+    time.sleep(2.0)
+
+    if sleep > 0:
+        from gotosleep import gotosleep
+        gotosleep(sleep)
+
     machine.reset()
 
     # If everything was ok we go to sleep for a while
-    # from gotosleep import gotosleep
-    #gotosleep()

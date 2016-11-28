@@ -51,6 +51,7 @@ MPYFILES := \
 	ds18b20.mpy \
 	config.mpy \
 	register.mpy \
+	gotosleep.mpy \
 	#display.mpy \
 
 %.mpy: %.py
@@ -58,11 +59,8 @@ MPYFILES := \
 
 O=config
 o: $(O).mpy
-	for f in $^ ; \
-	do \
-	    echo installing $$f ;\
-		$(AMPY) put $$f ;\
-	done;
+	@echo installing ^$
+	$(AMPY) put $^
 
 instruction:
 	@echo "How to install:"

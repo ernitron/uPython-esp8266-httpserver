@@ -13,7 +13,7 @@ from ubinascii import hexlify
 # Pin 12 is D6 on WeMos
 
 class TempSensor():
-  # D3	GPIO0	machine.Pin(0) no need external pullup resistor
+  # D3	GPIO0	machine.Pin(0) no need external pullup resistor (preferred)
   # D4	GPIO2	machine.Pin(2) no need external pullup resistor
   # D6	GPIO12	machine.Pin(12) need 4.7kohm pullup resistor
   def __init__(self, pin=12):
@@ -21,10 +21,11 @@ class TempSensor():
       self.sensor = 'Null'
       self.temp = '85.0' # the default error temperature of ds18b20
       self.roms = None
+      self.present = False
       try:
           ow = OneWire(Pin(pin))
           self.ds = ds18x20.DS18X20(ow)
-          self.roms = self.ds.scan() # should we scan again?
+          self.roms = self.ds.scan()
           self.present = True
       except:
           self.present = False
@@ -32,13 +33,17 @@ class TempSensor():
 
   def readtemp(self, n=0):
       if self.present == True:
-          self.ds.convert_temp()
-          time.sleep_ms(750)
-          self.temp = self.ds.read_temp(self.roms[n])
-          # 280b042800008019
-          # 28-80000028040b
-          self.sensor = hexlify(self.roms[n])
-          self.read_count += 1
+         try:
+           self.ds.convert_temp()
+           time.sleep_ms(750)
+           self.temp = self.ds.read_temp(self.roms[n])
+           # 280b042800008019
+           # 28-80000028040b
+           self.sensor = hexlify(self.roms[n])
+           self.read_count += 1
+         except:
+           self.temp = 85.0
+           self.present = False
       return self.temp
 
   def sensorid(self):

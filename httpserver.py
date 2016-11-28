@@ -5,7 +5,8 @@
 # Global import
 import socket  # Networking support
 import time    # Current time
-import gc      # Current time
+import sys
+import gc
 
 # Local import
 from request import parse_request
@@ -22,12 +23,13 @@ class Server:
      self.addr = None
      self.head2 = cb_open('header.txt')
      self.footer = cb_open('footer.txt')
+     self.timeout = 5.0
 
   def activate(self, port, host='0.0.0.0'):
      # Attempts to aquire the socket and launch the server
      try:
          self.socket = socket.socket()
-         self.socket.settimeout(5.0) # otherwise it will wait forever
+         self.socket.settimeout(self.timeout) # otherwise it will wait forever
          self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
          self.socket.bind((host, port))
          print("Server ", host, ":", port)
@@ -35,7 +37,10 @@ class Server:
          print(e)
      self.socket.listen(1) # maximum number of queued connections
 
-  def wait_connections(self, sta_if):
+  def wait_connections(self, interface, sleeptime):
+     if not sleeptime:
+          sleeptime = sys.maxsize - 1000
+
      # Main loop awaiting connections
      refresh30 = '<meta http-equiv="refresh" content="300">\n'
      error404 = '404 - Error'
@@ -44,20 +49,23 @@ class Server:
      rurl = config.get_config('register')
      auth = config.get_config('authorization')
 
-     counting = 0
      startime = time.time()
      while True:
-         if not sta_if.isconnected():
+
+         if not interface.isconnected():
              print('Disconnected...')
              return
 
-         nowtime = time.time()
-         if nowtime-startime > 299: # means every 60*5 = 300 sec == 5 mins
+         delta = abs(time.time() - startime)
+         if delta > sleeptime:
+             print('Time to sleep')
+             return
+
+         if not delta % 300: # means every 60*5 = 300 sec == 5 mins
              register(rurl, auth)
              startime = time.time()
 
-         counting += 1
-         print("Wait ", counting)
+         print("Wait ", delta)
 
          try:
             self.conn, self.addr = self.socket.accept()
@@ -77,6 +85,9 @@ class Server:
             h = self.conn.readline()
             if not h or h == b'\r\n':
                 break
+
+         # Get more time
+         sleeptime += 10
 
          # Some defaults
          code = 200
