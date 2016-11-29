@@ -98,6 +98,11 @@ def cb_temperature():
               '</p>Started on %s</div>' % (place, T['temp'], T['sensor'], T['count'], T['date'], starttime)
     return content
 
+def cb_temperature_plain():
+    T = sensor.status()
+    content = '%s C' % T['temp']
+    return content
+
 def cb_temperature_json():
     T = sensor.status()
     # Now add some configuration params

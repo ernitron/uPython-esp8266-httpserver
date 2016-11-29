@@ -19,17 +19,6 @@ class Config():
         except:
             self.config = {}
 
-    def set_time(self):
-        # Set Time RTC
-        from ntptime import settime
-        try:
-            settime()
-            (y, m, d, h, mm, s, c, u) = time.localtime()
-            self.config['starttime'] = '%d-%d-%d %d:%d:%d UTC' % (y, m, d, h, mm, s)
-        except:
-            print('Cannot set time')
-            pass
-
     def save_config(self):
         # Write Configuration
         j = ujson.dumps(self.config)

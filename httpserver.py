@@ -7,12 +7,13 @@ import socket  # Networking support
 import time    # Current time
 import sys
 import gc
+import machine
 
 # Local import
 from request import parse_request
 from config import config
 from content import cb_open, cb_status, cb_getconf, cb_setconf, cb_resetconf
-from content import cb_temperature, cb_temperature_json
+from content import cb_temperature, cb_temperature_json, cb_temperature_plain
 
 # A simple HTTP server
 class Server:
@@ -37,9 +38,17 @@ class Server:
          print(e)
      self.socket.listen(1) # maximum number of queued connections
 
+  def display_temperature(self):
+     from display import display
+     content = cb_temperature_plain()
+     try:
+         display.texting(content)
+     except Exception as e:
+         print(e)
+
   def wait_connections(self, interface, sleeptime):
      if not sleeptime:
-          sleeptime = sys.maxsize - 1000
+         sleeptime = sys.maxsize - 1000
 
      # Main loop awaiting connections
      refresh30 = '<meta http-equiv="refresh" content="300">\n'
@@ -48,9 +57,13 @@ class Server:
      from register import register
      rurl = config.get_config('register')
      auth = config.get_config('authorization')
+     todisplay = config.get_config('display')
 
      startime = time.time()
      while True:
+
+         if todisplay:
+            self.display_temperature()
 
          if not interface.isconnected():
              print('Disconnected...')
@@ -70,9 +83,9 @@ class Server:
          try:
             self.conn, self.addr = self.socket.accept()
          except KeyboardInterrupt:
-            print("Timeout")
             return
          except:
+            print("Timeout")
             continue
 
          try:
@@ -121,7 +134,14 @@ class Server:
          elif r['uri'] == b'/reboot' :
              content = '<h2>Reboot</h2></div>'
              self.http_send(code, content, extension, refresh)
+             time.sleep(1)
+             machine.reset()
              return
+         elif r['uri'] == b'/webrepl' :
+             import webrepl
+             webrepl.start()
+             sleeptime += 1800
+             content = '<h2>Webrepl wait 1800 sec</h2></div>'
          elif r['file'] != b'':
              myfile = r['file']
              code = 200

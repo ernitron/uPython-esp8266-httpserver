@@ -20,8 +20,14 @@ AMPY=ampy -p $(PORT)
 FIRMWARE=/opt/ESP8266/micropython/esp8266/build/firmware-combined.bin
 #FIRMWARE=./build/firmware-combined.bin
 
+# OTA via uploader
+DEV=192.168.1.147
+UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
+
 DATE=$(shell date +"%Y-%b-%d %H:%M:%S")
-VERSION=1.3.2
+VERSION=2.1.2-deepsleep
+BUILDDIR=BUILD
+
 
 ######################################################################
 # End of user config
@@ -42,25 +48,32 @@ TEXT:= \
 	footer.txt \
 	index.txt \
 	config.txt \
+	webrepl_cfg.py \
 
 MPYFILES := \
-	real.mpy \
-	httpserver.mpy \
-	request.mpy \
-	content.mpy \
-	ds18b20.mpy \
-	config.mpy \
-	register.mpy \
-	gotosleep.mpy \
-	#display.mpy \
+	$(BUILDDIR)/real.mpy \
+	$(BUILDDIR)/httpserver.mpy \
+	$(BUILDDIR)/request.mpy \
+	$(BUILDDIR)/content.mpy \
+	$(BUILDDIR)/ds18b20.mpy \
+	$(BUILDDIR)/config.mpy \
+	$(BUILDDIR)/register.mpy \
+	$(BUILDDIR)/gotosleep.mpy \
+	$(BUILDDIR)/display.mpy \
 
-%.mpy: %.py
-	$(MPYCROSS) $<
+$(BUILDDIR)/%.mpy: %.py
+	$(MPYCROSS) $< -o $@
 
-O=config
-o: $(O).mpy
-	@echo installing ^$
+O=httpserver
+o: $(BUILDDIR)/$(O).mpy
+	@echo installing $^
 	$(AMPY) put $^
+
+w:  $(BUILDDIR)/$(O).mpy
+	$(UPLOADER) $^ $(DEV):/$(O).mpy
+
+p:  $(O)
+	$(UPLOADER) $^ $(DEV):/$(O)
 
 instruction:
 	@echo "How to install:"
@@ -77,9 +90,12 @@ check:
 erase:
 	$(ESPTOOL) --port $(PORT) erase_flash 
 
+ESPIFSDK=/opt/ESP8266/nodemcu-firmware/sdk/esp_iot_sdk_v1.5.4.1/bin/esp_init_data_default.bin
+ESPIFADX=0x3fc000 
+
 flash:
 	@echo "Be sure about MEMORY SIZE"
-	$(ESPTOOL) --port $(PORT) --baud 115200 write_flash --verify --flash_size=32m --flash_mode=qio 0x00000 $(FIRMWARE)
+	$(ESPTOOL) --port $(PORT) --baud 115200 write_flash --verify --flash_size=32m --flash_mode=qio 0x00000 $(FIRMWARE) $(ESPIFADX) $(ESPIFSDK) 
 	@echo 'Power device again'
 
 # Upload all
@@ -91,9 +107,13 @@ install: $(MPYFILES) $(TEXT) main.py
 	    $(AMPY) put $$f ;\
 	done;
 
+webinstall: $(MPYFILES) $(TEXT) main.py
+	for f in $^ ; \
+       do $(UPLOADER) $$f $(DEV):/$$f ;\
+    done;
+
 reset:
 	$(AMPY) reset
-
 
 git:
 	git commit -m 'update ${DATE}' -a

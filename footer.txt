@@ -10,10 +10,11 @@
 <a href="/setconf/?key=ssid">set wifi ssid</a> |
 <a href="/setconf/?key=pwd">set wifi password</a> |
 <a href="/status">status</a> |
+<a href="/webrepl">webrepl</a> |
 <a href="/reboot">reboot</a> |
 <a href="/help.txt">help</a> ]
 </footer>
 
-<p>Micropython Temperature Server - Version 1.3.2 2016-nov-28 13:55:00-- Copyright (C) Erni Tron - 2016</p>
+<p>Micropython Temperature Server - Version 2.1.2-deepsleep 2016-nov-29 17:33:22-- Copyright (C) Erni Tron - 2016</p>
 
 </body></html>
