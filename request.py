@@ -15,9 +15,9 @@ def get_args(uri):
    return answer
 
 def urldecode(s):
-    table = {'%21':'!' ,'%23':'#' ,'%24':'$' ,'%26':'&' ,'%27':"'" ,'%28':'(' ,'%29':')' ,'%2F':'/' ,'%3A':':'}
-    #for k, v in table:
-    #    s = s.replace(k, v)
+    table = {'%21':'!' ,'%23':'#' ,'%24':'$' ,'%26':'&' ,'%27':"'" ,'%28':'(' ,'%29':')' ,'%2F':'/' ,'%3A':':', '+':' '}
+    for k, v in table.items():
+        s = s.replace(k, v)
     return s
 
 # Parses the client's request.
@@ -31,7 +31,7 @@ def parse_request(req):
    line, rest = req.split(b'\n', 1)
    method, uri, http = line.split(b' ')
 
-   Methods = b'GET HEAD POST PUT'
+   Methods = b'GET HEAD POST post PUT'
    if method in Methods:
        r['uri'] = uri
        r['method'] = method

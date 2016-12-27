@@ -2,43 +2,44 @@
 # Erni Tron ernitron@gmail.com
 # Copyright (c) 2016
 
-import network
-import ujson
-import machine
-import time
+import json
 
 class Config():
-    def __init__(self):
+    def __init__(self, file='config.txt'):
         self.config = {}
+        self.file = file
 
     def read_config(self):
         try:
-            with open('config.txt', 'rb') as f:
+            with open(self.file, 'rb') as f:
                 c = f.read()
-            self.config = ujson.loads(c)
+            self.config = json.loads(c)
         except:
             self.config = {}
 
     def save_config(self):
         # Write Configuration
-        j = ujson.dumps(self.config)
-        with open('config.txt', 'wb') as f:
-            f.write(j)
+        jdata = json.dumps(self.config)
+        if not jdata:
+            return
+        with open(self.file, 'wb') as f:
+            f.write(jdata)
 
     def clean_config(self):
         self.config = {}
         self.save_config()
 
     def set_config(self, k, v):
-        if v == '' or 'delete' in v :
+        if not v :
             del self.config[k]
         else: self.config[k] = v
 
     def get_config(self, k=None):
-        if k == None:
+        if not k :
             return self.config
         if k in self.config:
             return self.config[k]
         else: return ''
 
+# There will be only ONE config
 config = Config()

@@ -25,7 +25,6 @@ def cb_open(filename):
 
 def cb_status():
     datetime = datenow()
-    uptime = time.time()
     chipid = config.get_config('chipid')
     macaddr = config.get_config('mac')
     address = config.get_config('address')
@@ -35,19 +34,21 @@ def cb_status():
            '<p>MacAddr: %s' \
            '<p>Address: %s' \
            '<p>Free Mem: %d (alloc %d)' \
-           '<p>Uptime: %d' \
            '<p>Date Time: %s' \
            '<p>Start Time: %s'  \
-           '</div>' % (chipid, macaddr, address, gc.mem_free(), gc.mem_alloc(), uptime, datetime, starttime)
+           '</div>' % (chipid, macaddr, address, gc.mem_free(), gc.mem_alloc(), datetime, starttime)
 
 def cb_getconf():
     return '<h2>Configuration</h2><p>%s</p>' % json.dumps(config.get_config(None))
 
 def cb_setconf(key, value):
-    if value == None:
-        if key != None: kvalue = 'value="%s"' % key
-        else: kvalue = ' '
-        ret  = '<h2>Set configuration parameter</h2><form action="/setconf">' \
+    if not value:
+        if key:
+            kvalue = 'value="%s"' % (key)
+        else:
+            kvalue = ''
+        ret  = '<h2>Set configuration parameter</h2>'\
+               '<form action="/setconf">' \
                'Param <input type="text" %s name="key"> ' \
                'Value <input type="text" name="value"> ' \
                '<input type="submit" value="Submit">' \
@@ -67,25 +68,26 @@ def cb_resetconf():
     return 'Config cleaned'
 
 def cb_listssid():
-    response_header = """
+    response_header = '''
         <h1>Wi-Fi Client Setup</h1>
         <form action="/setconf" method="post">
           <label for="ssid">SSID</label>
-          <select name="ssid" id="ssid">"""
+          <select name="ssid" id="ssid">'''
 
-    response_variable = ''
     import network
     sta_if = network.WLAN(network.STA_IF)
+    response_variable = ''
     for ssid, *_ in if_sta.scan():
         response_variable += '<option value="{0}">{0}</option>'.format(ssid.decode("utf-8"))
 
-    response_footer = """
+    response_footer = '''
            </select> <br/>
            Password: <input name="password" type="password"></input> <br />
            <input type="submit" value="Submit">
          </form>
-    """
+    '''
     return response_header + response_variable + response_footer
+
 # Temperature Sensor contents
 from ds18b20 import sensor
 
@@ -105,17 +107,11 @@ def cb_temperature_plain():
 
 def cb_temperature_json():
     T = sensor.status()
-    # Now add some configuration params
-    T['mac'] = config.get_config('mac')
-    T['server'] = config.get_config('address')
-    T['place'] = config.get_config('place')
-    T['chipid'] = config.get_config('chipid')
     return json.dumps(T)
 
 def datenow():
     try:
         (Y, M, D, h, m, s, c, u) = time.localtime()
-        h = (h+1) % 24 # TimeZone is GMT-2 hardcoded ;)
         return '%d-%d-%d %d:%d:%d' % (Y, M, D, h, m, s)
     except:
         return time.time()

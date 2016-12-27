@@ -1,8 +1,7 @@
 </div>
 
 <footer class="footer">
-<a href="/index.txt">[ index</a> |
-<a href="/temperature">temperature</a> |
+<a href="/temperature">[ temperature</a> |
 <a href="/j">json</a>  |
 <a href="/getconf">get conf</a> |
 <a href="/setconf">set conf</a> |
@@ -10,11 +9,11 @@
 <a href="/setconf/?key=ssid">set wifi ssid</a> |
 <a href="/setconf/?key=pwd">set wifi password</a> |
 <a href="/status">status</a> |
-<a href="/webrepl">webrepl</a> |
+<a href="/webrepl">OTA / webrepl</a> |
 <a href="/reboot">reboot</a> |
 <a href="/help.txt">help</a> ]
 </footer>
 
-<p>Micropython Temperature Server - Version 2.1.2-deepsleep 2016-nov-29 17:33:22-- Copyright (C) Erni Tron - 2016</p>
+<p>Micropython Temperature Server - Version 2.1.2-deepsleep 2016-dic-26 15:20:34-- Copyright (C) Erni Tron - 2016</p>
 
 </body></html>

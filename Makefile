@@ -11,6 +11,7 @@
 PORT=/dev/ttyUSB0
 
 SPEED=115200
+SPEED=9600
 
 # Path to programs
 MPYCROSS=/opt/ESP8266/micropython/mpy-cross/mpy-cross
@@ -20,14 +21,15 @@ AMPY=ampy -p $(PORT)
 FIRMWARE=/opt/ESP8266/micropython/esp8266/build/firmware-combined.bin
 #FIRMWARE=./build/firmware-combined.bin
 
+CHECKSERVER=/usr/local/bin/checkserver.py
+
 # OTA via uploader
-DEV=192.168.1.147
+DEV=192.168.1.149
 UPLOADER=/opt/ESP8266/webrepl/webrepl_cli.py
 
 DATE=$(shell date +"%Y-%b-%d %H:%M:%S")
 VERSION=2.1.2-deepsleep
 BUILDDIR=BUILD
-
 
 ######################################################################
 # End of user config
@@ -35,11 +37,12 @@ BUILDDIR=BUILD
 FILES := \
 	main.py \
 	real.py \
-	ds18b20.py \
+	application.py \
+	httpserver.py \
 	request.py \
 	content.py \
+	ds18b20.py \
 	config.py \
-	httpserver.py \
 	register.py \
 
 TEXT:= \
@@ -52,12 +55,13 @@ TEXT:= \
 
 MPYFILES := \
 	$(BUILDDIR)/real.mpy \
+	$(BUILDDIR)/application.mpy \
 	$(BUILDDIR)/httpserver.mpy \
 	$(BUILDDIR)/request.mpy \
 	$(BUILDDIR)/content.mpy \
 	$(BUILDDIR)/ds18b20.mpy \
-	$(BUILDDIR)/config.mpy \
 	$(BUILDDIR)/register.mpy \
+	$(BUILDDIR)/config.mpy \
 	$(BUILDDIR)/gotosleep.mpy \
 	$(BUILDDIR)/display.mpy \
 
@@ -69,29 +73,16 @@ o: $(BUILDDIR)/$(O).mpy
 	@echo installing $^
 	$(AMPY) put $^
 
-w:  $(BUILDDIR)/$(O).mpy
-	$(UPLOADER) $^ $(DEV):/$(O).mpy
-
-p:  $(O)
-	$(UPLOADER) $^ $(DEV):/$(O)
-
-instruction:
-	@echo "How to install:"
-	@echo "1) make erase 2) make flash 3) make install"
-
 compile: $(MPYFILES)
 	@echo "compile all to be compiled"
-
-check:
-	python3 -m py_compile *.py
-	rm -rf __pycache__
-	rm -f *.pyc
 
 erase:
 	$(ESPTOOL) --port $(PORT) erase_flash 
 
 ESPIFSDK=/opt/ESP8266/nodemcu-firmware/sdk/esp_iot_sdk_v1.5.4.1/bin/esp_init_data_default.bin
 ESPIFADX=0x3fc000 
+ESPIFSDK=
+ESPIFADX=
 
 flash:
 	@echo "Be sure about MEMORY SIZE"
@@ -108,12 +99,27 @@ install: $(MPYFILES) $(TEXT) main.py
 	done;
 
 webinstall: $(MPYFILES) $(TEXT) main.py
+	sed -i -e "s/Version.*--/Version ${VERSION} ${DATE}--/" footer.txt
+	#$(CHECKSERVER) --host $(DEV)
 	for f in $^ ; \
        do $(UPLOADER) $$f $(DEV):/$$f ;\
     done;
 
+w:  $(BUILDDIR)/$(O).mpy
+	#$(CHECKSERVER) --host $(DEV)
+	$(UPLOADER) $^ $(DEV):/$(O).mpy
+
+p:  $(O)
+	#$(CHECKSERVER) --host $(DEV)
+	$(UPLOADER) $^ $(DEV):/$(O)
+
 reset:
 	$(AMPY) reset
+
+check:
+	python3 -m py_compile *.py
+	rm -rf __pycache__
+	rm -f *.pyc
 
 git:
 	git commit -m 'update ${DATE}' -a
@@ -125,3 +131,8 @@ vi:
 clean:
 	rm -f *.pyc
 	rm -f *.mpy
+
+instruction:
+	@echo "How to install:"
+	@echo "1) make erase 2) make flash 3) make install"
+
